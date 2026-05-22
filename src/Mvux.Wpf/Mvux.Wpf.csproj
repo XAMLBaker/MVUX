@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFrameworks>net8.0-windows;net10.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
 
     <IsPackable>true</IsPackable>
     <PackageId>Mvux.Wpf</PackageId>
-    <Version>1.0.0-preview</Version>
     <Description>Mvux.Wpf — Uno MVUX pattern for WPF. Includes FeedView control and source generator.</Description>
   </PropertyGroup>
 
