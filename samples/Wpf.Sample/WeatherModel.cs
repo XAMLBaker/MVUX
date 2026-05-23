@@ -1,4 +1,4 @@
-using Mvux.Core;
+using Lw.Mvux;
 
 namespace Wpf.Sample;
 

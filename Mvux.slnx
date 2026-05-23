@@ -4,11 +4,10 @@
     <Project Path="samples/Avalonia.Sample/Avalonia.Sample.csproj" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Mvux.Core/Mvux.Core.csproj" />
-    <Project Path="src/Mvux.Wpf.Generators/Mvux.Wpf.Generators.csproj" />
-    <Project Path="src/Mvux.Wpf/Mvux.Wpf.csproj" />
-    <Project Path="src/Mvux.Avalonia/Mvux.Avalonia.csproj" />
-    <Project Path="src/Mvux.Avalonia.Generators/Mvux.Avalonia.Generators.csproj" />
+    <Project Path="src/Lw.Mvux/Lw.Mvux.csproj" />
+    <Project Path="src/Lw.Mvux.Generators/Lw.Mvux.Generators.csproj" />
+    <Project Path="src/Lw.Mvux.Wpf/Lw.Mvux.Wpf.csproj" />
+    <Project Path="src/Lw.Mvux.Avalonia/Lw.Mvux.Avalonia.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Mvux.Core.Tests/Mvux.Core.Tests.csproj" />

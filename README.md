@@ -1,10 +1,19 @@
-# MVUX
+# Lw.Mvux
 
 [**한국어**](README.ko.md)
 
 A standalone reimplementation of the [Uno Platform MVUX](https://github.com/unoplatform/uno.extensions) pattern API (`IFeed`, `IState`, `IListState`, `Option<T>`, `Message<T>`, etc.) for **WPF and Avalonia**. Includes `FeedView` control and Roslyn source generator.
 
 > **This project** intentionally mirrors the API design (interface names, method signatures, type structures) of Uno Platform MVUX. The implementation was written from scratch for WPF and Avalonia — no source code was copied. This project has no official affiliation with the Uno Platform team.
+
+---
+
+## Packages
+
+| Package | Description | Target |
+|---------|-------------|--------|
+| `Lw.Mvux.Wpf` | FeedView control + source generator for WPF | net8.0-windows / net10.0-windows |
+| `Lw.Mvux.Avalonia` | FeedView control + source generator for Avalonia | net8.0 / net10.0 |
 
 ---
 
@@ -19,40 +28,21 @@ A standalone reimplementation of the [Uno Platform MVUX](https://github.com/unop
 
 ---
 
-## Requirements
-
-| Component | Target |
-|-----------|--------|
-| `Mvux.Core` | .NET 8.0+ |
-| `Mvux.Wpf` + `FeedView` | .NET 10.0-windows (WPF) |
-| `Mvux.Avalonia` + `FeedView` | .NET 8.0+ (Avalonia 11.3.0) |
-| Source Generator | Roslyn (bundled in `Mvux.Wpf` / `Mvux.Avalonia`) |
-
----
-
 ## Quick Start
 
-### 1. Reference
+### 1. Install
 
 **WPF**
 ```xml
-<!-- Wpf.Sample.csproj -->
-<ItemGroup>
-  <ProjectReference Include="src/Mvux.Core/Mvux.Core.csproj" />
-  <ProjectReference Include="src/Mvux.Wpf/Mvux.Wpf.csproj" />
-  <!-- Generator is bundled in Mvux.Wpf as an analyzer -->
-</ItemGroup>
+<PackageReference Include="Lw.Mvux.Wpf" Version="1.0.0" />
 ```
 
 **Avalonia**
 ```xml
-<!-- Avalonia.Sample.csproj -->
-<ItemGroup>
-  <ProjectReference Include="src/Mvux.Core/Mvux.Core.csproj" />
-  <ProjectReference Include="src/Mvux.Avalonia/Mvux.Avalonia.csproj" />
-  <!-- Generator is bundled in Mvux.Avalonia as an analyzer -->
-</ItemGroup>
+<PackageReference Include="Lw.Mvux.Avalonia" Version="1.0.0" />
 ```
+
+The source generator is bundled inside each package — no separate generator reference needed.
 
 ### 2. Write a Model
 
@@ -93,7 +83,7 @@ The source generator produces `WeatherViewModel` automatically with:
 - `string? City { get; set; }` — two-way INPC property wired to `IState<string>`
 - `IFeed<WeatherInfo> CurrentWeather` — raw feed passthrough for `FeedView`
 - `ObservableCollection<string> Favorites` / `FavoritesWithSelection` — list bindings
-- `ICommand AddFavoriteCommand` / `ICommand GoToSelectedCommand`
+- `ICommand AddFavorite` / `ICommand GoToSelected`
 
 ### 3. Wire up in code-behind
 
@@ -109,7 +99,7 @@ public MainWindow()
 
 **WPF:**
 ```xml
-<Window xmlns:lib="clr-namespace:Mvux.Wpf;assembly=Mvux.Wpf">
+<Window xmlns:lib="clr-namespace:Lw.Mvux.Wpf;assembly=Lw.Mvux.Wpf">
 
     <!-- IState<T> two-way binding — just use the property name -->
     <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" />
@@ -158,7 +148,7 @@ public MainWindow()
 
 **Avalonia** — same XAML structure, different namespace and `ListBox` instead of `ListView`:
 ```xml
-<Window xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia">
+<Window xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia">
 
     <!-- same FeedView usage -->
     <lib:FeedView x:Name="WeatherFeed" Source="{Binding CurrentWeather}">
@@ -230,16 +220,15 @@ await list.ClearAsync();
 
 ```
 src/
-  Mvux.Core/                — Core abstractions (platform-agnostic, net8.0+)
-  Mvux.Wpf/                 — WPF controls + Generator bundle (net10.0-windows)
-  Mvux.Wpf.Generators/      — Roslyn IIncrementalGenerator for WPF (netstandard2.0)
-  Mvux.Avalonia/            — Avalonia controls + Generator bundle (net8.0)
-  Mvux.Avalonia.Generators/ — Roslyn IIncrementalGenerator for Avalonia (netstandard2.0)
+  Lw.Mvux/                — Core abstractions (platform-agnostic, net8.0+)
+  Lw.Mvux.Generators/     — Roslyn IIncrementalGenerator (netstandard2.0)
+  Lw.Mvux.Wpf/            — WPF controls + Generator bundle (net8.0-windows / net10.0-windows)
+  Lw.Mvux.Avalonia/       — Avalonia controls + Generator bundle (net8.0 / net10.0)
 samples/
-  Wpf.Sample/               — WPF demo app (weather + favorites)
-  Avalonia.Sample/          — Avalonia demo app (weather + favorites)
+  Wpf.Sample/             — WPF demo app (weather + favorites)
+  Avalonia.Sample/        — Avalonia demo app (weather + favorites)
 tests/
-  Mvux.Core.Tests/          — Unit tests (xUnit, 42 tests)
+  Mvux.Core.Tests/        — Unit tests (xUnit)
 ```
 
 ---

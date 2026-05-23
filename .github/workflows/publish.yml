@@ -1,0 +1,121 @@
+name: Publish NuGet
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # Lw.Mvux.Avalonia — cross-platform, Linux OK
+  pack-avalonia:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get version from tag
+      id: version
+      shell: bash
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
+    - name: Pack Lw.Mvux.Avalonia
+      run: |
+        dotnet pack src/Lw.Mvux.Avalonia/Lw.Mvux.Avalonia.csproj \
+          -c Release -p:PackageVersion=${{ steps.version.outputs.VERSION }} -o out
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: nupkg-avalonia
+        path: out/*.nupkg
+
+  # Lw.Mvux.Wpf — Windows SDK required (UseWPF)
+  pack-wpf:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get version from tag
+      id: version
+      shell: bash
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
+    - name: Pack Lw.Mvux.Wpf
+      run: |
+        dotnet pack src/Lw.Mvux.Wpf/Lw.Mvux.Wpf.csproj `
+          -c Release -p:PackageVersion=${{ steps.version.outputs.VERSION }} -o out
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: nupkg-wpf
+        path: out/*.nupkg
+
+  # NuGet push + GitHub Release
+  publish:
+    needs: [pack-avalonia, pack-wpf]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get version from tag
+      id: version
+      shell: bash
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Get tag message
+      id: tag_message
+      shell: bash
+      run: |
+        MSG=$(git for-each-ref --format='%(contents)' "refs/tags/${{ github.ref_name }}")
+        if [ -z "$MSG" ]; then
+          MSG="No release notes provided."
+        fi
+        echo "MESSAGE<<EOF" >> $GITHUB_OUTPUT
+        echo "$MSG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - uses: actions/download-artifact@v4
+      with:
+        pattern: nupkg-*
+        merge-multiple: true
+        path: out
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Push to NuGet
+      shell: bash
+      run: |
+        dotnet nuget push out/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: out/*.nupkg
+        name: Release v${{ steps.version.outputs.VERSION }}
+        body: ${{ steps.tag_message.outputs.MESSAGE }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

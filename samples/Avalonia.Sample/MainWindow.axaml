@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia"
+        xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia"
         xmlns:local="clr-namespace:Avalonia.Sample"
         x:Class="Avalonia.Sample.MainWindow"
         Title="Weather — MVUX.Avalonia"

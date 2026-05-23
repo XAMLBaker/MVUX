@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Mvux.Core\Mvux.Core.csproj" />
+    <ProjectReference Include="..\..\src\Lw.Mvux\Lw.Mvux.csproj" />
   </ItemGroup>
 
 </Project>

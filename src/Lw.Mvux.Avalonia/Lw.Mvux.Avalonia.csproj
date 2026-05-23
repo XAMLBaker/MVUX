@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <IsPackable>true</IsPackable>
+    <AssemblyName>Lw.Mvux.Avalonia</AssemblyName>
+    <RootNamespace>Lw.Mvux.Avalonia</RootNamespace>
+    <PackageId>Lw.Mvux.Avalonia</PackageId>
+    <Description>Lw.Mvux.Avalonia — MVUX pattern for Avalonia. Includes FeedView control and source generator.</Description>
+    <PackageIcon>iocn.png</PackageIcon>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+
+    <MvuxGeneratorPath>..\Lw.Mvux.Generators\bin\$(Configuration)\netstandard2.0\Lw.Mvux.Generators.dll</MvuxGeneratorPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\iocn.png" Pack="true" PackagePath="\" />
+    <PackageReference Include="Avalonia" Version="11.*" />
+  </ItemGroup>
+
+  <!-- Core: Debug는 일반 참조, Release는 패키지에 내장 -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <ProjectReference Include="..\Lw.Mvux\Lw.Mvux.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <ProjectReference Include="..\Lw.Mvux\Lw.Mvux.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Generator: 빌드 의존성 보장 (DLL 생성), 런타임 참조 없음 -->
+  <ItemGroup>
+    <ProjectReference Include="..\Lw.Mvux.Generators\Lw.Mvux.Generators.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Generator DLL을 패키지 analyzers/dotnet/cs/ 에 직접 포함 -->
+  <ItemGroup>
+    <None Include="$(MvuxGeneratorPath)"
+          Pack="true"
+          PackagePath="analyzers/dotnet/cs"
+          Visible="false" />
+  </ItemGroup>
+
+  <!-- Core DLL을 패키지 lib 폴더에 내장 -->
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))" />
+    </ItemGroup>
+  </Target>
+
+</Project>

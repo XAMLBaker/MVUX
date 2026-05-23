@@ -1,10 +1,19 @@
-# MVUX
+# Lw.Mvux
 
 [**English**](README.md)
 
 Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 MVUX 패턴 API(`IFeed`, `IState`, `IListState`, `Option<T>`, `Message<T>` 등)를 그대로 모방하여 **WPF와 Avalonia**에서 독립적으로 재구현한 라이브러리입니다. `FeedView` 컨트롤, Roslyn 소스 제너레이터를 포함합니다.
 
 > **이 프로젝트는** Uno Platform MVUX의 API 설계(인터페이스명, 메서드 시그니처, 타입 구조)를 의도적으로 동일하게 따라 만들었습니다. 소스 코드를 복사한 것이 아니라 WPF·Avalonia 환경에 맞게 처음부터 새로 구현했습니다. Uno Platform 팀과 공식적인 관계는 없습니다.
+
+---
+
+## 패키지
+
+| 패키지 | 설명 | 대상 |
+|--------|------|------|
+| `Lw.Mvux.Wpf` | WPF용 FeedView 컨트롤 + 소스 제너레이터 | net8.0-windows / net10.0-windows |
+| `Lw.Mvux.Avalonia` | Avalonia용 FeedView 컨트롤 + 소스 제너레이터 | net8.0 / net10.0 |
 
 ---
 
@@ -19,40 +28,21 @@ Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 
 
 ---
 
-## 요구 사항
-
-| 컴포넌트 | 대상 |
-|---------|------|
-| `Mvux.Core` | .NET 8.0+ |
-| `Mvux.Wpf` + `FeedView` | .NET 10.0-windows (WPF) |
-| `Mvux.Avalonia` + `FeedView` | .NET 8.0+ (Avalonia 11.x) |
-| 소스 제너레이터 | Roslyn (`Mvux.Wpf` / `Mvux.Avalonia`에 내장) |
-
----
-
 ## 빠른 시작
 
-### 1. 참조 추가
+### 1. 설치
 
 **WPF**
 ```xml
-<!-- Wpf.Sample.csproj -->
-<ItemGroup>
-  <ProjectReference Include="src/Mvux.Core/Mvux.Core.csproj" />
-  <ProjectReference Include="src/Mvux.Wpf/Mvux.Wpf.csproj" />
-  <!-- 제너레이터는 Mvux.Wpf에 analyzer로 내장되어 있습니다 -->
-</ItemGroup>
+<PackageReference Include="Lw.Mvux.Wpf" Version="1.0.0" />
 ```
 
 **Avalonia**
 ```xml
-<!-- Avalonia.Sample.csproj -->
-<ItemGroup>
-  <ProjectReference Include="src/Mvux.Core/Mvux.Core.csproj" />
-  <ProjectReference Include="src/Mvux.Avalonia/Mvux.Avalonia.csproj" />
-  <!-- 제너레이터는 Mvux.Avalonia에 analyzer로 내장되어 있습니다 -->
-</ItemGroup>
+<PackageReference Include="Lw.Mvux.Avalonia" Version="1.0.0" />
 ```
+
+소스 제너레이터는 각 패키지에 내장되어 있어 별도 참조가 필요 없습니다.
 
 ### 2. Model 작성
 
@@ -93,7 +83,7 @@ public partial record WeatherModel(IWeatherService WeatherService)
 - `string? City { get; set; }` — `IState<string>`에 연결된 양방향 INPC 프로퍼티
 - `IFeed<WeatherInfo> CurrentWeather` — `FeedView`를 위한 피드 패스스루
 - `ObservableCollection<string> Favorites` / `FavoritesWithSelection` — 리스트 바인딩
-- `ICommand AddFavoriteCommand` / `ICommand GoToSelectedCommand`
+- `ICommand AddFavorite` / `ICommand GoToSelected`
 
 ### 3. 코드 비하인드 연결
 
@@ -109,7 +99,7 @@ public MainWindow()
 
 **WPF:**
 ```xml
-<Window xmlns:lib="clr-namespace:Mvux.Wpf;assembly=Mvux.Wpf">
+<Window xmlns:lib="clr-namespace:Lw.Mvux.Wpf;assembly=Lw.Mvux.Wpf">
 
     <!-- IState<T> 양방향 바인딩 — 프로퍼티 이름 그대로 사용 -->
     <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" />
@@ -158,7 +148,7 @@ public MainWindow()
 
 **Avalonia** — XAML 구조는 동일하며, 네임스페이스와 `ListBox` 사용:
 ```xml
-<Window xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia">
+<Window xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia">
 
     <!-- FeedView 사용법 동일 -->
     <lib:FeedView x:Name="WeatherFeed" Source="{Binding CurrentWeather}">
@@ -230,16 +220,15 @@ await list.ClearAsync();
 
 ```
 src/
-  Mvux.Core/                — 핵심 추상화 (플랫폼 무관, net8.0+)
-  Mvux.Wpf/                 — WPF 컨트롤 + 제너레이터 번들 (net10.0-windows)
-  Mvux.Wpf.Generators/      — WPF용 Roslyn IIncrementalGenerator (netstandard2.0)
-  Mvux.Avalonia/            — Avalonia 컨트롤 + 제너레이터 번들 (net8.0)
-  Mvux.Avalonia.Generators/ — Avalonia용 Roslyn IIncrementalGenerator (netstandard2.0)
+  Lw.Mvux/                — 핵심 추상화 (플랫폼 무관, net8.0+)
+  Lw.Mvux.Generators/     — Roslyn IIncrementalGenerator (netstandard2.0)
+  Lw.Mvux.Wpf/            — WPF 컨트롤 + 제너레이터 번들 (net8.0-windows / net10.0-windows)
+  Lw.Mvux.Avalonia/       — Avalonia 컨트롤 + 제너레이터 번들 (net8.0 / net10.0)
 samples/
-  Wpf.Sample/               — WPF 데모 앱 (날씨 + 즐겨찾기)
-  Avalonia.Sample/          — Avalonia 데모 앱 (날씨 + 즐겨찾기)
+  Wpf.Sample/             — WPF 데모 앱 (날씨 + 즐겨찾기)
+  Avalonia.Sample/        — Avalonia 데모 앱 (날씨 + 즐겨찾기)
 tests/
-  Mvux.Core.Tests/          — 단위 테스트 (xUnit, 42개)
+  Mvux.Core.Tests/        — 단위 테스트 (xUnit)
 ```
 
 ---

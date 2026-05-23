@@ -1,23 +1,23 @@
-# MVUX 아키텍처 문서
+# Lw.Mvux 아키텍처 문서
 
 ## 프로젝트 구조
 
 ```
 src/
-  Mvux.Core/              - 핵심 추상화 (플랫폼 무관) — WPF·Avalonia 공유
-  Mvux.Wpf/                   - WPF 컨트롤 (FeedView, ObservableListFeedView 등)
-  Mvux.Wpf.Generators/        - Roslyn Source Generator (WPF)
-  Mvux.Avalonia/              - Avalonia 컨트롤 (FeedView, ObservableListFeedView 등)
-  Mvux.Avalonia.Generators/   - Roslyn Source Generator (Avalonia)
+  Lw.Mvux/              - 핵심 추상화 (플랫폼 무관, net8.0+) — WPF·Avalonia 공유
+  Lw.Mvux.Generators/   - Roslyn Source Generator (netstandard2.0) — 단일 공용
+  Lw.Mvux.Wpf/          - WPF 컨트롤 + Generator 번들 (net8.0-windows / net10.0-windows)
+  Lw.Mvux.Avalonia/     - Avalonia 컨트롤 + Generator 번들 (net8.0 / net10.0)
 samples/
-  Wpf.Sample/             - WPF 데모 앱
+  Wpf.Sample/           - WPF 데모 앱
+  Avalonia.Sample/      - Avalonia 데모 앱
 tests/
-  Mvux.Core.Tests/    - 단위 테스트 (42개)
+  Mvux.Core.Tests/      - 단위 테스트 (xUnit)
 ```
 
 ---
 
-## 핵심 타입 (Mvux.Core)
+## 핵심 타입 (Lw.Mvux)
 
 ### 인터페이스
 
@@ -99,7 +99,7 @@ Generator가 `*Model` partial record를 감지해 `*ViewModel`을 자동 생성.
 | Model 타입 | ViewModel 노출 방식 |
 |-----------|-------------------|
 | `IFeed<T>` | `public IFeed<T> Name => _model.Name;` — FeedView가 직접 구독 |
-| `IState<T>` | `public T? Name { get; set; }` + INPC + `BeginInvoke` + SetAsync/SetNoneAsync |
+| `IState<T>` | `public T? Name { get; set; }` + INPC + `SynchronizationContext.Post` + SetAsync/SetNoneAsync |
 | `IListFeed<T>` / `IListState<T>` | `public ObservableCollection<T> Name` — `ObservableListFeedView<T>` 래핑 |
 | `ValueTask/Task` 메서드 (0~1 CT 파라미터) | `public ICommand Name { get; }` — AsyncCommand 래핑 |
 
@@ -114,9 +114,9 @@ DataContext = new WeatherViewModel(new FakeWeatherService());
 
 ---
 
-## FeedView (Mvux.Wpf)
+## FeedView (Lw.Mvux.Wpf / Lw.Mvux.Avalonia)
 
-`IFeed`를 직접 구독해 Loading / Data / Error / None 상태를 렌더링하는 WPF `ContentControl`.
+`IFeed`를 직접 구독해 Loading / Data / Error / None 상태를 렌더링하는 `ContentControl`.
 
 ```xml
 <lib:FeedView x:Name="WeatherFeed" Source="{Binding CurrentWeather}">
@@ -150,7 +150,7 @@ DataContext = new WeatherViewModel(new FakeWeatherService());
 
 ## Selection 자동 동기화
 
-`SelectionSyncManager`가 `EventManager.RegisterClassHandler`로 앱 전역 모든 `Selector` 이벤트를 후킹. **SelectedItem 바인딩 없이** ItemsSource 하나로 선택 자동 동기화.
+`SelectionSyncManager`가 `[ModuleInitializer]`로 어셈블리 로드 시 자동 등록. **SelectedItem 바인딩 없이** ItemsSource 하나로 선택 자동 동기화.
 
 ```xml
 <!-- SelectedItem 바인딩 불필요 -->
@@ -159,9 +159,11 @@ DataContext = new WeatherViewModel(new FakeWeatherService());
 
 동작 원리:
 1. `ObservableListFeedView<T>`가 `ISelectionFeed` 구현 (SelectionListFeed 위임)
-2. `SelectionSyncManager`가 Selector.Loaded → `ObservableListFeedView` 등록
-3. `SelectionChanged` → `ISelectionFeed.SetSelectedAsync` 호출
-4. State 변경 → `SelectionSyncManager.UpdateAll` → 모든 등록된 Selector.SelectedItem 업데이트
+2. `SelectionSyncManager.[ModuleInitializer]` → `ObservableListFeedViewConfig.OnSelectionUpdated` 콜백 등록
+3. UI 선택 변경 → `ISelectionFeed.SetSelectedAsync` 호출
+4. State 변경 → `ObservableListFeedViewConfig.OnSelectionUpdated` → `SelectionSyncManager.UpdateAll` → 모든 등록된 Selector.SelectedItem 업데이트
+
+> Selection은 플랫폼별 어셈블리(`Lw.Mvux.Wpf` / `Lw.Mvux.Avalonia`)가 있어야 동작. `Lw.Mvux` 단독으로는 콜백이 null이므로 Selection 동기화 불가.
 
 ---
 
@@ -197,9 +199,11 @@ listState.UpdateAllAsync(predicate, updater) // 조건 맞는 모든 항목 업�
 
 | 컴포넌트 | 방식 |
 |---------|------|
-| FeedView | `Dispatcher.Invoke` — 피드 메시지를 UI 스레드로 마샬링 |
-| IState 구독 (Generator) | 생성 시점 `Dispatcher.CurrentDispatcher` 캡처 + `BeginInvoke` |
-| ObservableListFeedView | `Dispatcher.Invoke` — 리스트 업데이트 마샬링 |
+| FeedView | 플랫폼 Dispatcher — UI 스레드로 마샬링 |
+| IState 구독 (Generator 생성 코드) | 생성 시점 `SynchronizationContext` 캡처 + `Post` |
+| ObservableListFeedView | `SynchronizationContext.Post` — 리스트 업데이트 마샬링 |
+
+`SynchronizationContext` 기반이므로 WPF·Avalonia 모두 단일 Generator로 처리 가능.
 
 ---
 
@@ -207,10 +211,10 @@ listState.UpdateAllAsync(predicate, updater) // 조건 맞는 모든 항목 업�
 
 ```xml
 <!-- WPF -->
-xmlns:lib="clr-namespace:Mvux.Wpf;assembly=Mvux.Wpf"
+xmlns:lib="clr-namespace:Lw.Mvux.Wpf;assembly=Lw.Mvux.Wpf"
 
 <!-- Avalonia -->
-xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia"
+xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia"
 ```
 
 ---
@@ -221,7 +225,6 @@ xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia"
 |------|-----|----------|
 | 프로퍼티 시스템 | `DependencyProperty` | `StyledProperty` / `AttachedProperty` |
 | UI 스레드 마샬링 | `Dispatcher.Invoke` / `BeginInvoke` | `Dispatcher.UIThread.InvokeAsync` / `Post` |
-| Generator 디스패처 | `Dispatcher.CurrentDispatcher` 캡처 | `Dispatcher.UIThread.Post` (싱글턴) |
 | Selector 기반 클래스 | `System.Windows.Controls.Primitives.Selector` | `Avalonia.Controls.Primitives.SelectingItemsControl` |
 | ContentPresenter | `System.Windows.Controls` | `Avalonia.Controls.Presenters` |
 | 전역 클래스 핸들러 | `EventManager.RegisterClassHandler` | `RoutedEvent.AddClassHandler<T>` / `.Changed.AddClassHandler<T>` |
@@ -230,6 +233,5 @@ xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia"
 | 기본 템플릿 생성 | `FrameworkElementFactory` | `FuncDataTemplate<T>` |
 | Visibility 토글 | `Visibility.Collapsed/Visible` | `IsVisible = false/true` |
 | ListView | `System.Windows.Controls.ListView` | `Avalonia.Controls.ListBox` |
-| ObservableListFeedView 생성자 | `(source, ct, dispatcher)` | `(source, ct)` — UIThread 싱글턴 |
 
-`Mvux.Core`는 두 플랫폼이 공유하는 순수 .NET 레이어이므로 변경 없이 재사용.
+`Lw.Mvux`는 두 플랫폼이 공유하는 순수 .NET 레이어이므로 변경 없이 재사용.

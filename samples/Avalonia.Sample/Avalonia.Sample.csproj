@@ -9,17 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
+    <PackageReference Include="Avalonia" Version="11.*" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.*" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Mvux.Core\Mvux.Core.csproj" />
-    <ProjectReference Include="..\..\src\Mvux.Avalonia\Mvux.Avalonia.csproj" />
-    <ProjectReference Include="..\..\src\Mvux.Avalonia.Generators\Mvux.Avalonia.Generators.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\Lw.Mvux.Avalonia\Lw.Mvux.Avalonia.csproj" />
   </ItemGroup>
 
 </Project>
