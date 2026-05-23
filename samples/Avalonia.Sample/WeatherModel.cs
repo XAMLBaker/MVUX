@@ -1,6 +1,6 @@
 using Mvux.Core;
 
-namespace Wpf.Sample;
+namespace Avalonia.Sample;
 
 public record WeatherInfo(string City, double Temperature, string Condition);
 

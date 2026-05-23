@@ -1,25 +1,25 @@
 using System.Collections.ObjectModel;
-using System.Windows.Threading;
+using Avalonia.Threading;
 using Mvux.Core;
 
-namespace Mvux.Wpf;
+namespace Mvux.Avalonia;
 
 /// <summary>
-/// IListFeed를 구독하여 WPF ObservableCollection으로 노출.
+/// IListFeed를 구독하여 Avalonia ObservableCollection으로 노출.
 /// 소스가 ISelectionFeed이면 SelectionSyncManager를 통해
-/// 어떤 Selector에든 ItemsSource 바인딩 하나로 선택 자동 동기화.
+/// 어떤 SelectingItemsControl에든 ItemsSource 바인딩 하나로 선택 자동 동기화.
 /// </summary>
 public sealed class ObservableListFeedView<T> : ObservableCollection<T>, ISelectionFeed
 {
     private readonly ISelectionFeed? _selFeed;
 
-    public ObservableListFeedView(IListFeed<T> source, CancellationToken ct, Dispatcher dispatcher)
+    public ObservableListFeedView(IListFeed<T> source, CancellationToken ct)
     {
         _selFeed = source as ISelectionFeed;
 
         SelectionSyncManager.EnsureInitialized();
 
-        _ = SubscribeListAsync(source, ct, dispatcher);
+        _ = SubscribeListAsync(source, ct);
 
         if (_selFeed is { HasSelection: true })
             _ = SubscribeSelectionAsync(_selFeed, ct);
@@ -27,7 +27,7 @@ public sealed class ObservableListFeedView<T> : ObservableCollection<T>, ISelect
 
     // ── List 구독 ─────────────────────────────────────────────────────────────
 
-    private async Task SubscribeListAsync(IListFeed<T> source, CancellationToken ct, Dispatcher dispatcher)
+    private async Task SubscribeListAsync(IListFeed<T> source, CancellationToken ct)
     {
         try
         {
@@ -35,7 +35,7 @@ public sealed class ObservableListFeedView<T> : ObservableCollection<T>, ISelect
             {
                 if (ct.IsCancellationRequested) return;
                 var captured = msg;
-                dispatcher.Invoke(() =>
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (ct.IsCancellationRequested) return;
                     if (captured.Data.IsSome(out var items)) Refresh(items);
@@ -46,7 +46,7 @@ public sealed class ObservableListFeedView<T> : ObservableCollection<T>, ISelect
         catch (OperationCanceledException) { }
     }
 
-    // ── Selection 구독 → 전역 Selector 업데이트 ──────────────────────────────
+    // ── Selection 구독 → 전역 SelectingItemsControl 업데이트 ─────────────────
 
     private async Task SubscribeSelectionAsync(ISelectionFeed selFeed, CancellationToken ct)
     {

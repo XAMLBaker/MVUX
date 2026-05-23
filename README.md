@@ -1,8 +1,10 @@
-# MVUX.Wpf
+# MVUX
 
-Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 MVUX 패턴 API(`IFeed`, `IState`, `IListState`, `Option<T>`, `Message<T>` 등)를 그대로 모방하여 WPF에서 독립적으로 재구현한 라이브러리입니다. `FeedView` 컨트롤, Roslyn 소스 제너레이터를 포함합니다.
+[**한국어**](README.ko.md)
 
-> **이 프로젝트는** Uno Platform MVUX의 API 설계(인터페이스명, 메서드 시그니처, 타입 구조)를 의도적으로 동일하게 따라 만들었습니다. 소스 코드를 복사한 것이 아니라 WPF 환경에 맞게 처음부터 새로 구현했습니다. Uno Platform 팀과 공식적인 관계는 없습니다.
+A standalone reimplementation of the [Uno Platform MVUX](https://github.com/unoplatform/uno.extensions) pattern API (`IFeed`, `IState`, `IListState`, `Option<T>`, `Message<T>`, etc.) for **WPF and Avalonia**. Includes `FeedView` control and Roslyn source generator.
+
+> **This project** intentionally mirrors the API design (interface names, method signatures, type structures) of Uno Platform MVUX. The implementation was written from scratch for WPF and Avalonia — no source code was copied. This project has no official affiliation with the Uno Platform team.
 
 ---
 
@@ -21,9 +23,10 @@ Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 
 
 | Component | Target |
 |-----------|--------|
-| `Mvux.Wpf.Core` | .NET 8.0+ |
+| `Mvux.Core` | .NET 8.0+ |
 | `Mvux.Wpf` + `FeedView` | .NET 10.0-windows (WPF) |
-| Source Generator | Roslyn (bundled in `Mvux.Wpf`) |
+| `Mvux.Avalonia` + `FeedView` | .NET 8.0+ (Avalonia 11.3.0) |
+| Source Generator | Roslyn (bundled in `Mvux.Wpf` / `Mvux.Avalonia`) |
 
 ---
 
@@ -31,12 +34,23 @@ Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 
 
 ### 1. Reference
 
+**WPF**
 ```xml
 <!-- Wpf.Sample.csproj -->
 <ItemGroup>
-  <ProjectReference Include="src/Mvux.Wpf.Core/Mvux.Wpf.Core.csproj" />
+  <ProjectReference Include="src/Mvux.Core/Mvux.Core.csproj" />
   <ProjectReference Include="src/Mvux.Wpf/Mvux.Wpf.csproj" />
   <!-- Generator is bundled in Mvux.Wpf as an analyzer -->
+</ItemGroup>
+```
+
+**Avalonia**
+```xml
+<!-- Avalonia.Sample.csproj -->
+<ItemGroup>
+  <ProjectReference Include="src/Mvux.Core/Mvux.Core.csproj" />
+  <ProjectReference Include="src/Mvux.Avalonia/Mvux.Avalonia.csproj" />
+  <!-- Generator is bundled in Mvux.Avalonia as an analyzer -->
 </ItemGroup>
 ```
 
@@ -93,6 +107,7 @@ public MainWindow()
 
 ### 4. Bind in XAML
 
+**WPF:**
 ```xml
 <Window xmlns:lib="clr-namespace:Mvux.Wpf;assembly=Mvux.Wpf">
 
@@ -137,6 +152,21 @@ public MainWindow()
 
     <!-- ListView selection sync — no SelectedItem binding needed -->
     <ListView ItemsSource="{Binding FavoritesWithSelection}" />
+
+</Window>
+```
+
+**Avalonia** — same XAML structure, different namespace and `ListBox` instead of `ListView`:
+```xml
+<Window xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia">
+
+    <!-- same FeedView usage -->
+    <lib:FeedView x:Name="WeatherFeed" Source="{Binding CurrentWeather}">
+        ...
+    </lib:FeedView>
+
+    <!-- ListBox selection sync — no SelectedItem binding needed -->
+    <ListBox ItemsSource="{Binding FavoritesWithSelection}" />
 
 </Window>
 ```
@@ -200,13 +230,16 @@ await list.ClearAsync();
 
 ```
 src/
-  Mvux.Wpf.Core/        — Core abstractions (platform-agnostic, net8.0+)
-  Mvux.Wpf/             — WPF controls + Generator bundle (net10.0-windows)
-  Mvux.Wpf.Generators/  — Roslyn IIncrementalGenerator (netstandard2.0)
+  Mvux.Core/                — Core abstractions (platform-agnostic, net8.0+)
+  Mvux.Wpf/                 — WPF controls + Generator bundle (net10.0-windows)
+  Mvux.Wpf.Generators/      — Roslyn IIncrementalGenerator for WPF (netstandard2.0)
+  Mvux.Avalonia/            — Avalonia controls + Generator bundle (net8.0)
+  Mvux.Avalonia.Generators/ — Roslyn IIncrementalGenerator for Avalonia (netstandard2.0)
 samples/
-  Wpf.Sample/           — Demo app (weather + favorites)
+  Wpf.Sample/               — WPF demo app (weather + favorites)
+  Avalonia.Sample/          — Avalonia demo app (weather + favorites)
 tests/
-  Mvux.Wpf.Core.Tests/  — Unit tests (xUnit, 42 tests)
+  Mvux.Core.Tests/          — Unit tests (xUnit, 42 tests)
 ```
 
 ---
@@ -217,10 +250,10 @@ This project is licensed under the **Apache License 2.0** — see the [LICENSE](
 
 ### Attribution
 
-이 프로젝트는 [Uno Platform MVUX (uno.extensions)](https://github.com/unoplatform/uno.extensions)의 API 설계를 의도적으로 모방하여 WPF에서 독립적으로 재구현했습니다. uno.extensions는 Apache License 2.0으로 배포됩니다.
+This project reimplements the API design of [Uno Platform MVUX (uno.extensions)](https://github.com/unoplatform/uno.extensions) independently for WPF and Avalonia. uno.extensions is distributed under the Apache License 2.0.
 
 > Copyright (c) 2021-present nventive and Uno Platform contributors
 >
 > Licensed under the Apache License, Version 2.0
 
-uno.extensions의 소스 코드는 이 저장소에 포함되어 있지 않습니다. 인터페이스 설계와 패턴 구조를 따랐으며, WPF 구현 코드는 처음부터 새로 작성했습니다.
+The source code of uno.extensions is not included in this repository. The interface design and pattern structure were followed; the WPF and Avalonia implementation code was written from scratch.

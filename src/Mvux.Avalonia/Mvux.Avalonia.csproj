@@ -1,28 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0-windows;net10.0-windows</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
 
     <IsPackable>true</IsPackable>
-    <PackageId>Mvux.Wpf</PackageId>
-    <Description>Mvux.Wpf — Uno MVUX pattern for WPF. Includes FeedView control and source generator.</Description>
+    <PackageId>Mvux.Avalonia</PackageId>
+    <Description>Mvux.Avalonia — Uno MVUX pattern for Avalonia. Includes FeedView control and source generator.</Description>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.*" />
     <ProjectReference Include="..\Mvux.Core\Mvux.Core.csproj" />
 
-    <!-- Generator: 런타임 참조 없이 analyzer로만 번들 -->
-    <ProjectReference Include="..\Mvux.Wpf.Generators\Mvux.Wpf.Generators.csproj"
+    <ProjectReference Include="..\Mvux.Avalonia.Generators\Mvux.Avalonia.Generators.csproj"
                       ReferenceOutputAssembly="false"
                       PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- 패키지의 analyzers/dotnet/cs/ 폴더에 Generator DLL 포함 -->
   <Target Name="IncludeGeneratorInPackage" BeforeTargets="_GetPackageFiles">
-    <MSBuild Projects="..\Mvux.Wpf.Generators\Mvux.Wpf.Generators.csproj"
+    <MSBuild Projects="..\Mvux.Avalonia.Generators\Mvux.Avalonia.Generators.csproj"
              Targets="GetTargetPath"
              Properties="Configuration=$(Configuration)">
       <Output TaskParameter="TargetOutputs" ItemName="_GeneratorDll" />

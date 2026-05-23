@@ -1,0 +1,158 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia"
+        xmlns:local="clr-namespace:Avalonia.Sample"
+        x:Class="Avalonia.Sample.MainWindow"
+        Title="Weather — MVUX.Avalonia"
+        Width="460" Height="700"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{DynamicResource SystemChromeLowColor}" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Opacity" Value="0.55" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+    </Window.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,24,20,24">
+
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <TextBlock Text="☁"
+                           FontSize="28"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0" />
+                <TextBlock Text="Weather Sample"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- City Search Card -->
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="label" Text="SEARCH" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0"
+                                 Watermark="Enter city name"
+                                 Text="{Binding City}"
+                                 Margin="0,0,12,0"
+                                 VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Command="{Binding RefreshCommand, ElementName=WeatherFeed}"
+                                VerticalAlignment="Center"
+                                Padding="16,8">
+                            Refresh
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- FeedView: Loading / Data / Error -->
+            <lib:FeedView x:Name="WeatherFeed"
+                          Source="{Binding CurrentWeather}"
+                          Margin="0,0,0,16">
+
+                <lib:FeedView.LoadingTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Padding="40">
+                            <StackPanel HorizontalAlignment="Center">
+                                <ProgressBar IsIndeterminate="True"
+                                             Width="200"
+                                             HorizontalAlignment="Center"
+                                             Margin="0,0,0,16" />
+                                <TextBlock Text="Fetching weather data..."
+                                           HorizontalAlignment="Center"
+                                           Opacity="0.7" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.LoadingTemplate>
+
+                <lib:FeedView.FeedDataTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Padding="24">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Data.City}"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,4" />
+
+                                <TextBlock Margin="0,8,0,4">
+                                    <Run Text="{Binding Data.Temperature, Mode=OneWay}"
+                                         FontSize="64"
+                                         FontWeight="Light" />
+                                    <Run Text="°C"
+                                         FontSize="28"
+                                         FontWeight="Light" />
+                                </TextBlock>
+
+                                <TextBlock Text="{Binding Data.Condition}"
+                                           Opacity="0.7" />
+
+                                <!-- 재조회 중일 때 인디케이터 -->
+                                <ProgressBar IsIndeterminate="True"
+                                             IsVisible="{Binding Progress}"
+                                             Margin="0,12,0,0"
+                                             Height="2" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.FeedDataTemplate>
+
+                <lib:FeedView.ErrorTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Padding="24">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Error.Message}"
+                                           Foreground="Red"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,12" />
+                                <Button Content="Retry"
+                                        Command="{Binding Refresh}"
+                                        HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.ErrorTemplate>
+
+            </lib:FeedView>
+
+            <!-- Favorites Card -->
+            <Border Classes="card">
+                <StackPanel>
+                    <TextBlock Classes="label" Text="FAVORITES" />
+
+                    <ListBox ItemsSource="{Binding FavoritesWithSelection}"
+                             MaxHeight="160"
+                             MinHeight="40"
+                             Margin="0,0,0,12" />
+
+                    <TextBlock Margin="0,0,0,12">
+                        <Run Text="Selected:  " Foreground="Gray" />
+                        <Run Text="{Binding SelectedFavorite}" FontWeight="SemiBold" />
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="★  Add Favorite"
+                                Command="{Binding AddFavorite}"
+                                Margin="0,0,8,0" />
+                        <Button Content="→  Go to Selected"
+                                Command="{Binding GoToSelected}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</Window>

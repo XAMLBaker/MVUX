@@ -1,36 +1,40 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Mvux.Core;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
-namespace Mvux.Wpf;
+namespace Mvux.Avalonia;
 
 /// <summary>
-/// 어떤 WPF Selector에든 붙일 수 있는 MVUX Feed 첨부 속성.
+/// 어떤 Avalonia SelectingItemsControl에든 붙일 수 있는 MVUX Feed 첨부 속성.
 /// Source에 .Selection(state)이 붙어 있으면 SelectedItem 바인딩 없이 자동 동기화.
 /// </summary>
-public static class FeedBehavior
+public sealed class FeedBehavior : global::Avalonia.AvaloniaObject
 {
-    // ConditionalWeakTable: Selector가 GC되면 자동 정리
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Selector, SelectorSubscription>
+    private static readonly ConditionalWeakTable<SelectingItemsControl, SelectorSubscription>
         _subscriptions = new();
 
-    public static readonly DependencyProperty ItemsSourceProperty =
-        DependencyProperty.RegisterAttached(
-            "ItemsSource", typeof(IFeed), typeof(FeedBehavior),
-            new PropertyMetadata(null, OnItemsSourceChanged));
+    public static readonly AttachedProperty<IFeed?> ItemsSourceProperty =
+        AvaloniaProperty.RegisterAttached<FeedBehavior, SelectingItemsControl, IFeed?>("ItemsSource");
 
-    public static IFeed? GetItemsSource(Selector element)
-        => (IFeed?)element.GetValue(ItemsSourceProperty);
+    static FeedBehavior()
+    {
+        ItemsSourceProperty.Changed
+            .AddClassHandler<SelectingItemsControl>((sel, e) => OnItemsSourceChanged(sel, e));
+    }
 
-    public static void SetItemsSource(Selector element, IFeed? value)
+    public static IFeed? GetItemsSource(SelectingItemsControl element)
+        => element.GetValue(ItemsSourceProperty);
+
+    public static void SetItemsSource(SelectingItemsControl element, IFeed? value)
         => element.SetValue(ItemsSourceProperty, value);
 
-    private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnItemsSourceChanged(SelectingItemsControl selector, AvaloniaPropertyChangedEventArgs e)
     {
-        if (d is not Selector selector) return;
-
         if (_subscriptions.TryGetValue(selector, out var existing))
         {
             existing.Dispose();
@@ -48,12 +52,12 @@ public static class FeedBehavior
 
     private sealed class SelectorSubscription : IDisposable
     {
-        private readonly Selector _selector;
+        private readonly SelectingItemsControl _selector;
         private readonly ISelectionFeed? _selFeed;
         private CancellationTokenSource _cts = new();
         private bool _syncingSelection;
 
-        public SelectorSubscription(Selector selector, IFeed feed)
+        public SelectorSubscription(SelectingItemsControl selector, IFeed feed)
         {
             _selector = selector;
             _selFeed = feed as ISelectionFeed;
@@ -66,7 +70,7 @@ public static class FeedBehavior
                 Start(feed);
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object? sender, RoutedEventArgs e)
         {
             _cts.Cancel();
             _cts = new CancellationTokenSource();
@@ -74,7 +78,8 @@ public static class FeedBehavior
             if (feed != null) Start(feed);
         }
 
-        private void OnUnloaded(object sender, RoutedEventArgs e) => _cts.Cancel();
+        private void OnUnloaded(object? sender, RoutedEventArgs e)
+            => _cts.Cancel();
 
         private void Start(IFeed feed)
         {
@@ -91,7 +96,7 @@ public static class FeedBehavior
                 {
                     if (ct.IsCancellationRequested) return;
                     var captured = msg;
-                    _selector.Dispatcher.Invoke(() =>
+                    await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         if (ct.IsCancellationRequested) return;
                         _selector.ItemsSource = captured.HasData
@@ -111,7 +116,7 @@ public static class FeedBehavior
                 {
                     if (ct.IsCancellationRequested) return;
                     var captured = msg;
-                    _selector.Dispatcher.Invoke(() =>
+                    await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         if (ct.IsCancellationRequested) return;
                         _syncingSelection = true;
@@ -123,7 +128,7 @@ public static class FeedBehavior
             catch (OperationCanceledException) { }
         }
 
-        private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (_syncingSelection || _selFeed == null) return;
             _ = _selFeed.SetSelectedAsync(_selector.SelectedItem, _cts.Token);

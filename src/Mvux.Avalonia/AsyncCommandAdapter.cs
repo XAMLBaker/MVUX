@@ -1,10 +1,10 @@
 using Mvux.Core;
 using System.Windows.Input;
 
-namespace Mvux.Wpf;
+namespace Mvux.Avalonia;
 
 /// <summary>
-/// Wraps IAsyncCommand as WPF ICommand so it can be bound to Button.Command.
+/// Wraps IAsyncCommand as ICommand so it can be bound to Button.Command.
 /// </summary>
 public sealed class AsyncCommandAdapter : ICommand
 {

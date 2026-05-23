@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Mvux.Wpf.Core\Mvux.Wpf.Core.csproj" />
+    <ProjectReference Include="..\..\src\Mvux.Core\Mvux.Core.csproj" />
     <ProjectReference Include="..\..\src\Mvux.Wpf\Mvux.Wpf.csproj" />
     <ProjectReference Include="..\..\src\Mvux.Wpf.Generators\Mvux.Wpf.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

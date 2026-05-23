@@ -1,21 +1,23 @@
-# MVUX.Wpf 아키텍처 문서
+# MVUX 아키텍처 문서
 
 ## 프로젝트 구조
 
 ```
 src/
-  Mvux.Wpf.Core/          - 핵심 추상화 (플랫폼 무관)
-  Mvux.Wpf/               - WPF 컨트롤 (FeedView, ObservableListFeedView 등)
-  Mvux.Wpf.Generators/    - Roslyn Source Generator
+  Mvux.Core/              - 핵심 추상화 (플랫폼 무관) — WPF·Avalonia 공유
+  Mvux.Wpf/                   - WPF 컨트롤 (FeedView, ObservableListFeedView 등)
+  Mvux.Wpf.Generators/        - Roslyn Source Generator (WPF)
+  Mvux.Avalonia/              - Avalonia 컨트롤 (FeedView, ObservableListFeedView 등)
+  Mvux.Avalonia.Generators/   - Roslyn Source Generator (Avalonia)
 samples/
   Wpf.Sample/             - WPF 데모 앱
 tests/
-  Mvux.Wpf.Core.Tests/    - 단위 테스트 (42개)
+  Mvux.Core.Tests/    - 단위 테스트 (42개)
 ```
 
 ---
 
-## 핵심 타입 (Mvux.Wpf.Core)
+## 핵심 타입 (Mvux.Core)
 
 ### 인터페이스
 
@@ -204,5 +206,30 @@ listState.UpdateAllAsync(predicate, updater) // 조건 맞는 모든 항목 업�
 ## XAML 네임스페이스
 
 ```xml
+<!-- WPF -->
 xmlns:lib="clr-namespace:Mvux.Wpf;assembly=Mvux.Wpf"
+
+<!-- Avalonia -->
+xmlns:lib="clr-namespace:Mvux.Avalonia;assembly=Mvux.Avalonia"
 ```
+
+---
+
+## Avalonia 포팅 메모
+
+| 항목 | WPF | Avalonia |
+|------|-----|----------|
+| 프로퍼티 시스템 | `DependencyProperty` | `StyledProperty` / `AttachedProperty` |
+| UI 스레드 마샬링 | `Dispatcher.Invoke` / `BeginInvoke` | `Dispatcher.UIThread.InvokeAsync` / `Post` |
+| Generator 디스패처 | `Dispatcher.CurrentDispatcher` 캡처 | `Dispatcher.UIThread.Post` (싱글턴) |
+| Selector 기반 클래스 | `System.Windows.Controls.Primitives.Selector` | `Avalonia.Controls.Primitives.SelectingItemsControl` |
+| ContentPresenter | `System.Windows.Controls` | `Avalonia.Controls.Presenters` |
+| 전역 클래스 핸들러 | `EventManager.RegisterClassHandler` | `RoutedEvent.AddClassHandler<T>` / `.Changed.AddClassHandler<T>` |
+| Selection 동기화 트리거 | Loaded 이벤트 | ItemsSourceProperty.Changed 클래스 핸들러 |
+| DataTemplate 타입 | `DataTemplate` (concrete) | `IDataTemplate` (인터페이스) |
+| 기본 템플릿 생성 | `FrameworkElementFactory` | `FuncDataTemplate<T>` |
+| Visibility 토글 | `Visibility.Collapsed/Visible` | `IsVisible = false/true` |
+| ListView | `System.Windows.Controls.ListView` | `Avalonia.Controls.ListBox` |
+| ObservableListFeedView 생성자 | `(source, ct, dispatcher)` | `(source, ct)` — UIThread 싱글턴 |
+
+`Mvux.Core`는 두 플랫폼이 공유하는 순수 .NET 레이어이므로 변경 없이 재사용.

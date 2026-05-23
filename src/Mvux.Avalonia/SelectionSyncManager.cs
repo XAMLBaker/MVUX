@@ -1,13 +1,13 @@
 using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Mvux.Core;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
-namespace Mvux.Wpf;
+namespace Mvux.Avalonia;
 
 /// <summary>
-/// 앱 전체 Selector의 Loaded/SelectionChanged를 전역 감지.
+/// 앱 전체 SelectingItemsControl의 ItemsSource/SelectionChanged를 전역 감지.
 /// ItemsSource가 ISelectionFeed이면 SelectedItem 바인딩 없이 자동 동기화.
 /// </summary>
 internal static class SelectionSyncManager
@@ -16,28 +16,30 @@ internal static class SelectionSyncManager
 
     static SelectionSyncManager()
     {
-        EventManager.RegisterClassHandler(
-            typeof(Selector), FrameworkElement.LoadedEvent,
-            new RoutedEventHandler(OnLoaded));
+        // ItemsSource가 ISelectionFeed로 설정될 때 → Selector 등록
+        ItemsControl.ItemsSourceProperty.Changed
+            .AddClassHandler<SelectingItemsControl>((sel, e) => OnItemsSourceChanged(sel, e));
 
-        EventManager.RegisterClassHandler(
-            typeof(Selector), Selector.SelectionChangedEvent,
-            new SelectionChangedEventHandler(OnSelectionChanged));
+        // SelectionChanged → ISelectionFeed 업데이트
+        SelectingItemsControl.SelectionChangedEvent
+            .AddClassHandler<SelectingItemsControl>((sel, e) => OnSelectionChanged(sel, e));
     }
 
     public static void EnsureInitialized() { }
 
-    // ── Selector 이벤트 ───────────────────────────────────────────────────────
+    // ── ItemsSource 변경 ──────────────────────────────────────────────────────
 
-    private static void OnLoaded(object sender, RoutedEventArgs e)
+    private static void OnItemsSourceChanged(SelectingItemsControl sel, AvaloniaPropertyChangedEventArgs e)
     {
-        if (sender is Selector sel && GetFeed(sel) is { } sf)
+        if (e.NewValue is ISelectionFeed { HasSelection: true } sf)
             GetRegistry(sf).Attach(sel);
     }
 
-    private static void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    // ── Selection 변경 → ISelectionFeed 업데이트 ──────────────────────────────
+
+    private static void OnSelectionChanged(SelectingItemsControl sel, SelectionChangedEventArgs e)
     {
-        if (sender is Selector sel && GetFeed(sel) is { } sf)
+        if (sel.ItemsSource is ISelectionFeed { HasSelection: true } sf)
         {
             var reg = GetRegistry(sf);
             if (!reg.IsSyncing)
@@ -45,10 +47,7 @@ internal static class SelectionSyncManager
         }
     }
 
-    private static ISelectionFeed? GetFeed(Selector sel)
-        => sel.ItemsSource is ISelectionFeed { HasSelection: true } sf ? sf : null;
-
-    // ── IState 변경 → Selector 업데이트 ──────────────────────────────────────
+    // ── IState 변경 → SelectingItemsControl 업데이트 ─────────────────────────
 
     public static void UpdateSelection(ISelectionFeed sf, object? item)
     {
@@ -63,18 +62,17 @@ internal static class SelectionSyncManager
 
     internal sealed class Registry
     {
-        private readonly List<WeakReference<Selector>> _selectors = [];
+        private readonly List<WeakReference<SelectingItemsControl>> _selectors = new();
         private object? _lastSelection;
 
         public bool IsSyncing { get; private set; }
 
-        public void Attach(Selector sel)
+        public void Attach(SelectingItemsControl sel)
         {
             _selectors.RemoveAll(r => !r.TryGetTarget(out _));
             if (!_selectors.Any(r => r.TryGetTarget(out var s) && s == sel))
-                _selectors.Add(new WeakReference<Selector>(sel));
+                _selectors.Add(new WeakReference<SelectingItemsControl>(sel));
 
-            // 이미 알고 있는 선택 항목으로 초기화
             IsSyncing = true;
             sel.SelectedItem = _lastSelection;
             IsSyncing = false;

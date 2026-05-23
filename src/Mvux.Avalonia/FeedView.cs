@@ -1,11 +1,13 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Threading;
 using Mvux.Core;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 
-namespace Mvux.Wpf;
+namespace Mvux.Avalonia;
 
 /// <summary>
 /// IFeed를 직접 구독하고 Loading / Data / Error / None 템플릿을 자동 전환.
@@ -17,55 +19,50 @@ public class FeedView : ContentControl
     private IMessage? _lastMessage;
     private readonly FeedViewState _state;
 
-    // ── Dependency Properties ────────────────────────────────────────────────
+    // ── Styled Properties ────────────────────────────────────────────────────
 
-    public static readonly DependencyProperty SourceProperty =
-        DependencyProperty.Register(nameof(Source), typeof(IFeed), typeof(FeedView),
-            new PropertyMetadata(null, OnSourceChanged));
+    public static readonly StyledProperty<IFeed?> SourceProperty =
+        AvaloniaProperty.Register<FeedView, IFeed?>(nameof(Source));
 
-    public static readonly DependencyProperty LoadingTemplateProperty =
-        DependencyProperty.Register(nameof(LoadingTemplate), typeof(DataTemplate), typeof(FeedView),
-            new PropertyMetadata(null, OnTemplateChanged));
+    public static readonly StyledProperty<IDataTemplate?> LoadingTemplateProperty =
+        AvaloniaProperty.Register<FeedView, IDataTemplate?>(nameof(LoadingTemplate));
 
-    public static readonly DependencyProperty FeedDataTemplateProperty =
-        DependencyProperty.Register(nameof(FeedDataTemplate), typeof(DataTemplate), typeof(FeedView),
-            new PropertyMetadata(null, OnTemplateChanged));
+    public static readonly StyledProperty<IDataTemplate?> FeedDataTemplateProperty =
+        AvaloniaProperty.Register<FeedView, IDataTemplate?>(nameof(FeedDataTemplate));
 
-    public static readonly DependencyProperty ErrorTemplateProperty =
-        DependencyProperty.Register(nameof(ErrorTemplate), typeof(DataTemplate), typeof(FeedView),
-            new PropertyMetadata(null, OnTemplateChanged));
+    public static readonly StyledProperty<IDataTemplate?> ErrorTemplateProperty =
+        AvaloniaProperty.Register<FeedView, IDataTemplate?>(nameof(ErrorTemplate));
 
-    public static readonly DependencyProperty NoneTemplateProperty =
-        DependencyProperty.Register(nameof(NoneTemplate), typeof(DataTemplate), typeof(FeedView),
-            new PropertyMetadata(null, OnTemplateChanged));
+    public static readonly StyledProperty<IDataTemplate?> NoneTemplateProperty =
+        AvaloniaProperty.Register<FeedView, IDataTemplate?>(nameof(NoneTemplate));
 
     public IFeed? Source
     {
-        get => (IFeed?)GetValue(SourceProperty);
+        get => GetValue(SourceProperty);
         set => SetValue(SourceProperty, value);
     }
 
-    public DataTemplate? LoadingTemplate
+    public IDataTemplate? LoadingTemplate
     {
-        get => (DataTemplate?)GetValue(LoadingTemplateProperty);
+        get => GetValue(LoadingTemplateProperty);
         set => SetValue(LoadingTemplateProperty, value);
     }
 
-    public DataTemplate? FeedDataTemplate
+    public IDataTemplate? FeedDataTemplate
     {
-        get => (DataTemplate?)GetValue(FeedDataTemplateProperty);
+        get => GetValue(FeedDataTemplateProperty);
         set => SetValue(FeedDataTemplateProperty, value);
     }
 
-    public DataTemplate? ErrorTemplate
+    public IDataTemplate? ErrorTemplate
     {
-        get => (DataTemplate?)GetValue(ErrorTemplateProperty);
+        get => GetValue(ErrorTemplateProperty);
         set => SetValue(ErrorTemplateProperty, value);
     }
 
-    public DataTemplate? NoneTemplate
+    public IDataTemplate? NoneTemplate
     {
-        get => (DataTemplate?)GetValue(NoneTemplateProperty);
+        get => GetValue(NoneTemplateProperty);
         set => SetValue(NoneTemplateProperty, value);
     }
 
@@ -76,24 +73,28 @@ public class FeedView : ContentControl
 
     // ── Default templates ────────────────────────────────────────────────────
 
-    private static readonly DataTemplate DefaultLoadingTemplate = BuildDefaultLoadingTemplate();
-    private static readonly DataTemplate DefaultErrorTemplate = BuildDefaultErrorTemplate();
+    private static readonly IDataTemplate DefaultLoadingTemplate =
+        new FuncDataTemplate<FeedViewState>((_, _) =>
+            new TextBlock { Text = "Loading...", VerticalAlignment = VerticalAlignment.Center });
 
-    private static DataTemplate BuildDefaultLoadingTemplate()
-    {
-        var factory = new FrameworkElementFactory(typeof(TextBlock));
-        factory.SetValue(TextBlock.TextProperty, "Loading...");
-        factory.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-        return new DataTemplate { VisualTree = factory };
-    }
+    private static readonly IDataTemplate DefaultErrorTemplate =
+        new FuncDataTemplate<FeedViewState>((state, _) =>
+            new TextBlock
+            {
+                Text = state?.Error?.Message,
+                Foreground = Brushes.Red,
+                TextWrapping = TextWrapping.Wrap
+            });
 
-    private static DataTemplate BuildDefaultErrorTemplate()
+    // ── Static constructor ────────────────────────────────────────────────────
+
+    static FeedView()
     {
-        var factory = new FrameworkElementFactory(typeof(TextBlock));
-        factory.SetBinding(TextBlock.TextProperty, new Binding("Error.Message"));
-        factory.SetValue(TextBlock.ForegroundProperty, Brushes.Red);
-        factory.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
-        return new DataTemplate { VisualTree = factory };
+        SourceProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.Restart());
+        LoadingTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());
+        FeedDataTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());
+        ErrorTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());
+        NoneTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());
     }
 
     // ── Constructor ──────────────────────────────────────────────────────────
@@ -102,21 +103,17 @@ public class FeedView : ContentControl
     {
         _state = new FeedViewState { Refresh = new RelayCommand(Restart) };
         Content = _state;
-        DataContextChanged += (_, e) => _state.Parent = e.NewValue;
+        DataContextChanged += (_, _) => _state.Parent = DataContext;
         Unloaded += (_, _) => _cts.Cancel();
         Loaded += (_, _) => Restart();
     }
 
-    // ── Change handlers ──────────────────────────────────────────────────────
+    // ── Template changed ─────────────────────────────────────────────────────
 
-    private static void OnSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        => ((FeedView)d).Restart();
-
-    private static void OnTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private void OnTemplateChanged()
     {
-        var fv = (FeedView)d;
-        if (fv._lastMessage is { } msg) fv.ApplyMessage(msg);
-        else fv.ApplyNone();
+        if (_lastMessage is { } msg) ApplyMessage(msg);
+        else ApplyNone();
     }
 
     // ── Subscription ─────────────────────────────────────────────────────────
@@ -141,7 +138,7 @@ public class FeedView : ContentControl
             {
                 if (ct.IsCancellationRequested) return;
                 var captured = msg;
-                Dispatcher.Invoke(() =>
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (!ct.IsCancellationRequested)
                         ApplyMessage(captured);
@@ -160,7 +157,6 @@ public class FeedView : ContentControl
 
         if (msg.HasData)
         {
-            // Data + optional loading (stale refresh) — always show data template
             _state.Data = msg.DataObject;
             _state.Error = msg.Error;
             ContentTemplate = FeedDataTemplate;

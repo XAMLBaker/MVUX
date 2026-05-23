@@ -1,10 +1,12 @@
 using System.Collections;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Templates;
+using Avalonia.Threading;
 using Mvux.Core;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
 
-namespace Mvux.Wpf;
+namespace Mvux.Avalonia;
 
 /// <summary>
 /// ObservableListFeedView를 ItemsSource로 바인딩하면 선택 자동 동기화.
@@ -12,83 +14,86 @@ namespace Mvux.Wpf;
 /// </summary>
 public class FeedListView : ContentControl
 {
-    private readonly ListView _listView;
+    private readonly ListBox _listBox;
     private readonly ContentPresenter _stateLayer;
     private ISelectionFeed? _selFeed;
     private CancellationTokenSource _selCts = new();
     private bool _syncingSelection;
 
-    // ── Dependency Properties ─────────────────────────────────────────────────
+    // ── Styled Properties ─────────────────────────────────────────────────────
 
-    public static readonly DependencyProperty ItemsSourceProperty =
-        DependencyProperty.Register(nameof(ItemsSource), typeof(IEnumerable), typeof(FeedListView),
-            new PropertyMetadata(null, OnItemsSourceChanged));
+    public static readonly StyledProperty<IEnumerable?> ItemsSourceProperty =
+        AvaloniaProperty.Register<FeedListView, IEnumerable?>(nameof(ItemsSource));
 
-    public static readonly DependencyProperty ItemTemplateProperty =
-        DependencyProperty.Register(nameof(ItemTemplate), typeof(DataTemplate), typeof(FeedListView),
-            new PropertyMetadata(null, (d, e) => ((FeedListView)d)._listView.ItemTemplate = (DataTemplate?)e.NewValue));
+    public static readonly StyledProperty<IDataTemplate?> ItemTemplateProperty =
+        AvaloniaProperty.Register<FeedListView, IDataTemplate?>(nameof(ItemTemplate));
 
-    public static readonly DependencyProperty LoadingTemplateProperty =
-        DependencyProperty.Register(nameof(LoadingTemplate), typeof(DataTemplate), typeof(FeedListView),
-            new PropertyMetadata(null));
+    public static readonly StyledProperty<IDataTemplate?> LoadingTemplateProperty =
+        AvaloniaProperty.Register<FeedListView, IDataTemplate?>(nameof(LoadingTemplate));
 
-    public static readonly DependencyProperty ErrorTemplateProperty =
-        DependencyProperty.Register(nameof(ErrorTemplate), typeof(DataTemplate), typeof(FeedListView),
-            new PropertyMetadata(null));
+    public static readonly StyledProperty<IDataTemplate?> ErrorTemplateProperty =
+        AvaloniaProperty.Register<FeedListView, IDataTemplate?>(nameof(ErrorTemplate));
 
-    public static readonly DependencyProperty NoneTemplateProperty =
-        DependencyProperty.Register(nameof(NoneTemplate), typeof(DataTemplate), typeof(FeedListView),
-            new PropertyMetadata(null));
+    public static readonly StyledProperty<IDataTemplate?> NoneTemplateProperty =
+        AvaloniaProperty.Register<FeedListView, IDataTemplate?>(nameof(NoneTemplate));
 
     public IEnumerable? ItemsSource
     {
-        get => (IEnumerable?)GetValue(ItemsSourceProperty);
+        get => GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 
-    public DataTemplate? ItemTemplate
+    public IDataTemplate? ItemTemplate
     {
-        get => (DataTemplate?)GetValue(ItemTemplateProperty);
+        get => GetValue(ItemTemplateProperty);
         set => SetValue(ItemTemplateProperty, value);
     }
 
-    public DataTemplate? LoadingTemplate
+    public IDataTemplate? LoadingTemplate
     {
-        get => (DataTemplate?)GetValue(LoadingTemplateProperty);
+        get => GetValue(LoadingTemplateProperty);
         set => SetValue(LoadingTemplateProperty, value);
     }
 
-    public DataTemplate? ErrorTemplate
+    public IDataTemplate? ErrorTemplate
     {
-        get => (DataTemplate?)GetValue(ErrorTemplateProperty);
+        get => GetValue(ErrorTemplateProperty);
         set => SetValue(ErrorTemplateProperty, value);
     }
 
-    public DataTemplate? NoneTemplate
+    public IDataTemplate? NoneTemplate
     {
-        get => (DataTemplate?)GetValue(NoneTemplateProperty);
+        get => GetValue(NoneTemplateProperty);
         set => SetValue(NoneTemplateProperty, value);
+    }
+
+    // ── Static constructor ────────────────────────────────────────────────────
+
+    static FeedListView()
+    {
+        ItemsSourceProperty.Changed
+            .AddClassHandler<FeedListView>((fv, e) => fv.ApplyItemsSource(e.NewValue as IEnumerable));
+
+        ItemTemplateProperty.Changed
+            .AddClassHandler<FeedListView>((fv, e) => fv._listBox.ItemTemplate = e.NewValue as IDataTemplate);
     }
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public FeedListView()
     {
-        _listView = new ListView { Visibility = Visibility.Collapsed };
-        _listView.SelectionChanged += OnSelectionChanged;
+        _listBox = new ListBox { IsVisible = false };
+        _listBox.SelectionChanged += OnSelectionChanged;
 
         _stateLayer = new ContentPresenter();
 
         var root = new Grid();
         root.Children.Add(_stateLayer);
-        root.Children.Add(_listView);
+        root.Children.Add(_listBox);
         Content = root;
     }
 
     // ── ItemsSource 변경 ──────────────────────────────────────────────────────
-
-    private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        => ((FeedListView)d).ApplyItemsSource(e.NewValue as IEnumerable);
 
     private void ApplyItemsSource(IEnumerable? source)
     {
@@ -96,7 +101,7 @@ public class FeedListView : ContentControl
         _selCts = new CancellationTokenSource();
         _selFeed = null;
 
-        _listView.ItemsSource = source;
+        _listBox.ItemsSource = source;
 
         if (source is ISelectionFeed { HasSelection: true } selFeed)
         {
@@ -104,11 +109,10 @@ public class FeedListView : ContentControl
             _ = SubscribeSelectionAsync(selFeed, _selCts.Token);
         }
 
-        // 컬렉션이 비어있으면 None 상태 표시
         if (source == null)
             ShowNone();
         else
-            _listView.Visibility = Visibility.Visible;
+            _listBox.IsVisible = true;
     }
 
     private async Task SubscribeSelectionAsync(ISelectionFeed selFeed, CancellationToken ct)
@@ -119,11 +123,11 @@ public class FeedListView : ContentControl
             {
                 if (ct.IsCancellationRequested) return;
                 var captured = msg;
-                Dispatcher.Invoke(() =>
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (ct.IsCancellationRequested) return;
                     _syncingSelection = true;
-                    _listView.SelectedItem = captured.HasData ? captured.DataObject : null;
+                    _listBox.SelectedItem = captured.HasData ? captured.DataObject : null;
                     _syncingSelection = false;
                 });
             }
@@ -131,17 +135,17 @@ public class FeedListView : ContentControl
         catch (OperationCanceledException) { }
     }
 
-    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (_syncingSelection || _selFeed == null) return;
-        _ = _selFeed.SetSelectedAsync(_listView.SelectedItem, _selCts.Token);
+        _ = _selFeed.SetSelectedAsync(_listBox.SelectedItem, _selCts.Token);
     }
 
     // ── State display ─────────────────────────────────────────────────────────
 
     private void ShowNone()
     {
-        _listView.Visibility = Visibility.Collapsed;
+        _listBox.IsVisible = false;
         if (NoneTemplate is not null)
         {
             _stateLayer.ContentTemplate = NoneTemplate;

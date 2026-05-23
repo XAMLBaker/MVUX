@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Mvux.Wpf.Generators;
+namespace Mvux.Avalonia.Generators;
 
 [Generator]
 public sealed class ViewModelGenerator : IIncrementalGenerator
@@ -70,7 +70,6 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
                      && (m.ReturnType.Name == "ValueTask" || m.ReturnType.Name == "Task")
                      && ((INamedTypeSymbol)m.ReturnType).TypeArguments.Length == 0)
             {
-                // Support both: Method(CancellationToken) and Method()
                 var hasCt = m.Parameters.Length == 1
                     && m.Parameters[0].Type.ToDisplayString() == "System.Threading.CancellationToken";
                 var noParams = m.Parameters.Length == 0;
@@ -91,7 +90,6 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
         sb.AppendLine("using System.Threading;");
         sb.AppendLine("using System.Threading.Tasks;");
         sb.AppendLine("using System.Windows.Input;");
-        sb.AppendLine("using System.Windows.Threading;");
         sb.AppendLine("using Mvux.Core;");
         sb.AppendLine();
 
@@ -116,7 +114,6 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine($"    private readonly {symbol.Name} _model;");
         sb.AppendLine("    private readonly CancellationTokenSource _cts = new CancellationTokenSource();");
-        sb.AppendLine("    private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;");
         sb.AppendLine();
 
         sb.AppendLine($"    public {vmName}({ctorParams})");
@@ -128,7 +125,7 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
             if (kind == PropKind.State)
                 sb.AppendLine($"        _ = Subscribe{name}Async(_cts.Token);");
             else if (kind == PropKind.ListFeed || kind == PropKind.ListState)
-                sb.AppendLine($"        {fieldName} = new global::Mvux.Wpf.ObservableListFeedView<{typeArg}>(_model.{name}, _cts.Token, _dispatcher);");
+                sb.AppendLine($"        {fieldName} = new global::Mvux.Avalonia.ObservableListFeedView<{typeArg}>(_model.{name}, _cts.Token);");
         }
         foreach (var (name, hasCt, isValueTask) in cmds)
         {
@@ -173,26 +170,23 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
                     sb.AppendLine("        {");
                     sb.AppendLine($"            var v = msg.Data.IsSome(out var val) ? val : default;");
                     sb.AppendLine($"            var captured = v;");
-                    sb.AppendLine("#pragma warning disable CS4014");
-                    sb.AppendLine($"            _dispatcher.BeginInvoke(() =>");
+                    sb.AppendLine($"            global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>");
                     sb.AppendLine("            {");
                     sb.AppendLine($"                if (Equals({fieldName}, captured)) return;");
                     sb.AppendLine($"                {fieldName} = captured;");
                     sb.AppendLine("                OnPropertyChanged(nameof(" + name + "));");
                     sb.AppendLine("            });");
-                    sb.AppendLine("#pragma warning restore CS4014");
                     sb.AppendLine("        }");
                     sb.AppendLine("    }");
                     break;
 
                 case PropKind.Feed:
-                    // IFeed<T> — expose raw feed directly; FeedView subscribes to it
                     sb.AppendLine($"    public global::Mvux.Core.IFeed<{typeArg}> {name} => _model.{name};");
                     break;
 
                 case PropKind.ListFeed:
                 case PropKind.ListState:
-                    sb.AppendLine($"    private readonly global::Mvux.Wpf.ObservableListFeedView<{typeArg}> {fieldName};");
+                    sb.AppendLine($"    private readonly global::Mvux.Avalonia.ObservableListFeedView<{typeArg}> {fieldName};");
                     sb.AppendLine($"    public global::System.Collections.ObjectModel.ObservableCollection<{typeArg}> {name} => {fieldName};");
                     break;
             }
