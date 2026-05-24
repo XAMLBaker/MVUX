@@ -85,7 +85,7 @@ public class FeedView : ContentControl
 
     static FeedView()
     {
-        SourceProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.Restart());
+        SourceProperty.Changed.AddClassHandler<FeedView>((fv, _) => { if (fv.IsLoaded) fv.Restart(); });
         LoadingTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());
         FeedDataTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());
         ErrorTemplateProperty.Changed.AddClassHandler<FeedView>((fv, _) => fv.OnTemplateChanged());

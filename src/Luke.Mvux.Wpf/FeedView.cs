@@ -105,7 +105,10 @@ public class FeedView : ContentControl
     // ── Change handlers ──────────────────────────────────────────────────────
 
     private static void OnSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        => ((FeedView)d).Restart();
+    {
+        var fv = (FeedView)d;
+        if (fv.IsLoaded) fv.Restart();
+    }
 
     private static void OnTemplateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
