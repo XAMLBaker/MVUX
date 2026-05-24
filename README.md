@@ -33,13 +33,13 @@ A standalone reimplementation of the [Uno Platform MVUX](https://github.com/unop
 ### 1. Install
 
 **WPF**
-```xml
-<PackageReference Include="Luke.Mvux.Wpf" Version="1.0.0" />
+```shell
+dotnet add package Luke.Mvux.Wpf
 ```
 
 **Avalonia**
-```xml
-<PackageReference Include="Luke.Mvux.Avalonia" Version="1.0.0" />
+```shell
+dotnet add package Luke.Mvux.Avalonia
 ```
 
 The source generator is bundled inside each package — no separate generator reference needed.

@@ -33,13 +33,13 @@ Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 
 ### 1. 설치
 
 **WPF**
-```xml
-<PackageReference Include="Luke.Mvux.Wpf" Version="1.0.0" />
+```shell
+dotnet add package Luke.Mvux.Wpf
 ```
 
 **Avalonia**
-```xml
-<PackageReference Include="Luke.Mvux.Avalonia" Version="1.0.0" />
+```shell
+dotnet add package Luke.Mvux.Avalonia
 ```
 
 소스 제너레이터는 각 패키지에 내장되어 있어 별도 참조가 필요 없습니다.
