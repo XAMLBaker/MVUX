@@ -1,4 +1,4 @@
-# Lw.Mvux
+# Luke.Mvux
 
 [**한국어**](README.ko.md)
 
@@ -12,8 +12,8 @@ A standalone reimplementation of the [Uno Platform MVUX](https://github.com/unop
 
 | Package | Description | Target |
 |---------|-------------|--------|
-| `Lw.Mvux.Wpf` | FeedView control + source generator for WPF | net8.0-windows / net10.0-windows |
-| `Lw.Mvux.Avalonia` | FeedView control + source generator for Avalonia | net8.0 / net10.0 |
+| `Luke.Mvux.Wpf` | FeedView control + source generator for WPF | net8.0-windows / net10.0-windows |
+| `Luke.Mvux.Avalonia` | FeedView control + source generator for Avalonia | net8.0 / net10.0 |
 
 ---
 
@@ -34,12 +34,12 @@ A standalone reimplementation of the [Uno Platform MVUX](https://github.com/unop
 
 **WPF**
 ```xml
-<PackageReference Include="Lw.Mvux.Wpf" Version="1.0.0" />
+<PackageReference Include="Luke.Mvux.Wpf" Version="1.0.0" />
 ```
 
 **Avalonia**
 ```xml
-<PackageReference Include="Lw.Mvux.Avalonia" Version="1.0.0" />
+<PackageReference Include="Luke.Mvux.Avalonia" Version="1.0.0" />
 ```
 
 The source generator is bundled inside each package — no separate generator reference needed.
@@ -99,7 +99,7 @@ public MainWindow()
 
 **WPF:**
 ```xml
-<Window xmlns:lib="clr-namespace:Lw.Mvux.Wpf;assembly=Lw.Mvux.Wpf">
+<Window xmlns:lib="clr-namespace:Luke.Mvux.Wpf;assembly=Luke.Mvux.Wpf">
 
     <!-- IState<T> two-way binding — just use the property name -->
     <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" />
@@ -148,7 +148,7 @@ public MainWindow()
 
 **Avalonia** — same XAML structure, different namespace and `ListBox` instead of `ListView`:
 ```xml
-<Window xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia">
+<Window xmlns:lib="clr-namespace:Luke.Mvux.Avalonia;assembly=Luke.Mvux.Avalonia">
 
     <!-- same FeedView usage -->
     <lib:FeedView x:Name="WeatherFeed" Source="{Binding CurrentWeather}">
@@ -220,10 +220,10 @@ await list.ClearAsync();
 
 ```
 src/
-  Lw.Mvux/                — Core abstractions (platform-agnostic, net8.0+)
-  Lw.Mvux.Generators/     — Roslyn IIncrementalGenerator (netstandard2.0)
-  Lw.Mvux.Wpf/            — WPF controls + Generator bundle (net8.0-windows / net10.0-windows)
-  Lw.Mvux.Avalonia/       — Avalonia controls + Generator bundle (net8.0 / net10.0)
+  Luke.Mvux/                — Core abstractions (platform-agnostic, net8.0+)
+  Luke.Mvux.Generators/     — Roslyn IIncrementalGenerator (netstandard2.0)
+  Luke.Mvux.Wpf/            — WPF controls + Generator bundle (net8.0-windows / net10.0-windows)
+  Luke.Mvux.Avalonia/       — Avalonia controls + Generator bundle (net8.0 / net10.0)
 samples/
   Wpf.Sample/             — WPF demo app (weather + favorites)
   Avalonia.Sample/        — Avalonia demo app (weather + favorites)

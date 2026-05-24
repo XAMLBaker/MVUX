@@ -1,7 +1,7 @@
 <Project>
   <!-- samples/ 하위 모든 프로젝트에 Mvux.Generators를 Analyzer로 자동 주입 -->
   <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\Lw.Mvux.Generators\Lw.Mvux.Generators.csproj"
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\Luke.Mvux.Generators\Luke.Mvux.Generators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
   </ItemGroup>

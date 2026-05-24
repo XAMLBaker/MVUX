@@ -1,13 +1,13 @@
-# Lw.Mvux 아키텍처 문서
+# Luke.Mvux 아키텍처 문서
 
 ## 프로젝트 구조
 
 ```
 src/
-  Lw.Mvux/              - 핵심 추상화 (플랫폼 무관, net8.0+) — WPF·Avalonia 공유
-  Lw.Mvux.Generators/   - Roslyn Source Generator (netstandard2.0) — 단일 공용
-  Lw.Mvux.Wpf/          - WPF 컨트롤 + Generator 번들 (net8.0-windows / net10.0-windows)
-  Lw.Mvux.Avalonia/     - Avalonia 컨트롤 + Generator 번들 (net8.0 / net10.0)
+  Luke.Mvux/              - 핵심 추상화 (플랫폼 무관, net8.0+) — WPF·Avalonia 공유
+  Luke.Mvux.Generators/   - Roslyn Source Generator (netstandard2.0) — 단일 공용
+  Luke.Mvux.Wpf/          - WPF 컨트롤 + Generator 번들 (net8.0-windows / net10.0-windows)
+  Luke.Mvux.Avalonia/     - Avalonia 컨트롤 + Generator 번들 (net8.0 / net10.0)
 samples/
   Wpf.Sample/           - WPF 데모 앱
   Avalonia.Sample/      - Avalonia 데모 앱
@@ -17,7 +17,7 @@ tests/
 
 ---
 
-## 핵심 타입 (Lw.Mvux)
+## 핵심 타입 (Luke.Mvux)
 
 ### 인터페이스
 
@@ -114,7 +114,7 @@ DataContext = new WeatherViewModel(new FakeWeatherService());
 
 ---
 
-## FeedView (Lw.Mvux.Wpf / Lw.Mvux.Avalonia)
+## FeedView (Luke.Mvux.Wpf / Luke.Mvux.Avalonia)
 
 `IFeed`를 직접 구독해 Loading / Data / Error / None 상태를 렌더링하는 `ContentControl`.
 
@@ -163,7 +163,7 @@ DataContext = new WeatherViewModel(new FakeWeatherService());
 3. UI 선택 변경 → `ISelectionFeed.SetSelectedAsync` 호출
 4. State 변경 → `ObservableListFeedViewConfig.OnSelectionUpdated` → `SelectionSyncManager.UpdateAll` → 모든 등록된 Selector.SelectedItem 업데이트
 
-> Selection은 플랫폼별 어셈블리(`Lw.Mvux.Wpf` / `Lw.Mvux.Avalonia`)가 있어야 동작. `Lw.Mvux` 단독으로는 콜백이 null이므로 Selection 동기화 불가.
+> Selection은 플랫폼별 어셈블리(`Luke.Mvux.Wpf` / `Luke.Mvux.Avalonia`)가 있어야 동작. `Luke.Mvux` 단독으로는 콜백이 null이므로 Selection 동기화 불가.
 
 ---
 
@@ -211,10 +211,10 @@ listState.UpdateAllAsync(predicate, updater) // 조건 맞는 모든 항목 업�
 
 ```xml
 <!-- WPF -->
-xmlns:lib="clr-namespace:Lw.Mvux.Wpf;assembly=Lw.Mvux.Wpf"
+xmlns:lib="clr-namespace:Luke.Mvux.Wpf;assembly=Luke.Mvux.Wpf"
 
 <!-- Avalonia -->
-xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia"
+xmlns:lib="clr-namespace:Luke.Mvux.Avalonia;assembly=Luke.Mvux.Avalonia"
 ```
 
 ---
@@ -234,4 +234,4 @@ xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia"
 | Visibility 토글 | `Visibility.Collapsed/Visible` | `IsVisible = false/true` |
 | ListView | `System.Windows.Controls.ListView` | `Avalonia.Controls.ListBox` |
 
-`Lw.Mvux`는 두 플랫폼이 공유하는 순수 .NET 레이어이므로 변경 없이 재사용.
+`Luke.Mvux`는 두 플랫폼이 공유하는 순수 .NET 레이어이므로 변경 없이 재사용.

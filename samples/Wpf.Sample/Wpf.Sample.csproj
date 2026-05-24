@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Lw.Mvux.Wpf\Lw.Mvux.Wpf.csproj" />
+    <ProjectReference Include="..\..\src\Luke.Mvux.Wpf\Luke.Mvux.Wpf.csproj" />
   </ItemGroup>
 
 </Project>

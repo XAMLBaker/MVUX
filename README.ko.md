@@ -1,4 +1,4 @@
-# Lw.Mvux
+# Luke.Mvux
 
 [**English**](README.md)
 
@@ -12,8 +12,8 @@ Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 
 
 | 패키지 | 설명 | 대상 |
 |--------|------|------|
-| `Lw.Mvux.Wpf` | WPF용 FeedView 컨트롤 + 소스 제너레이터 | net8.0-windows / net10.0-windows |
-| `Lw.Mvux.Avalonia` | Avalonia용 FeedView 컨트롤 + 소스 제너레이터 | net8.0 / net10.0 |
+| `Luke.Mvux.Wpf` | WPF용 FeedView 컨트롤 + 소스 제너레이터 | net8.0-windows / net10.0-windows |
+| `Luke.Mvux.Avalonia` | Avalonia용 FeedView 컨트롤 + 소스 제너레이터 | net8.0 / net10.0 |
 
 ---
 
@@ -34,12 +34,12 @@ Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 
 
 **WPF**
 ```xml
-<PackageReference Include="Lw.Mvux.Wpf" Version="1.0.0" />
+<PackageReference Include="Luke.Mvux.Wpf" Version="1.0.0" />
 ```
 
 **Avalonia**
 ```xml
-<PackageReference Include="Lw.Mvux.Avalonia" Version="1.0.0" />
+<PackageReference Include="Luke.Mvux.Avalonia" Version="1.0.0" />
 ```
 
 소스 제너레이터는 각 패키지에 내장되어 있어 별도 참조가 필요 없습니다.
@@ -99,7 +99,7 @@ public MainWindow()
 
 **WPF:**
 ```xml
-<Window xmlns:lib="clr-namespace:Lw.Mvux.Wpf;assembly=Lw.Mvux.Wpf">
+<Window xmlns:lib="clr-namespace:Luke.Mvux.Wpf;assembly=Luke.Mvux.Wpf">
 
     <!-- IState<T> 양방향 바인딩 — 프로퍼티 이름 그대로 사용 -->
     <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" />
@@ -148,7 +148,7 @@ public MainWindow()
 
 **Avalonia** — XAML 구조는 동일하며, 네임스페이스와 `ListBox` 사용:
 ```xml
-<Window xmlns:lib="clr-namespace:Lw.Mvux.Avalonia;assembly=Lw.Mvux.Avalonia">
+<Window xmlns:lib="clr-namespace:Luke.Mvux.Avalonia;assembly=Luke.Mvux.Avalonia">
 
     <!-- FeedView 사용법 동일 -->
     <lib:FeedView x:Name="WeatherFeed" Source="{Binding CurrentWeather}">
@@ -220,10 +220,10 @@ await list.ClearAsync();
 
 ```
 src/
-  Lw.Mvux/                — 핵심 추상화 (플랫폼 무관, net8.0+)
-  Lw.Mvux.Generators/     — Roslyn IIncrementalGenerator (netstandard2.0)
-  Lw.Mvux.Wpf/            — WPF 컨트롤 + 제너레이터 번들 (net8.0-windows / net10.0-windows)
-  Lw.Mvux.Avalonia/       — Avalonia 컨트롤 + 제너레이터 번들 (net8.0 / net10.0)
+  Luke.Mvux/                — 핵심 추상화 (플랫폼 무관, net8.0+)
+  Luke.Mvux.Generators/     — Roslyn IIncrementalGenerator (netstandard2.0)
+  Luke.Mvux.Wpf/            — WPF 컨트롤 + 제너레이터 번들 (net8.0-windows / net10.0-windows)
+  Luke.Mvux.Avalonia/       — Avalonia 컨트롤 + 제너레이터 번들 (net8.0 / net10.0)
 samples/
   Wpf.Sample/             — WPF 데모 앱 (날씨 + 즐겨찾기)
   Avalonia.Sample/        — Avalonia 데모 앱 (날씨 + 즐겨찾기)

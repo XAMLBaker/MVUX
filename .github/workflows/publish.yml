@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  # Lw.Mvux.Avalonia — cross-platform, Linux OK
+  # Luke.Mvux.Avalonia — cross-platform, Linux OK
   pack-avalonia:
     runs-on: ubuntu-latest
     steps:
@@ -25,9 +25,9 @@ jobs:
           8.0.x
           10.0.x
 
-    - name: Pack Lw.Mvux.Avalonia
+    - name: Pack Luke.Mvux.Avalonia
       run: |
-        dotnet pack src/Lw.Mvux.Avalonia/Lw.Mvux.Avalonia.csproj \
+        dotnet pack src/Luke.Mvux.Avalonia/Luke.Mvux.Avalonia.csproj \
           -c Release -p:PackageVersion=${{ steps.version.outputs.VERSION }} -o out
 
     - uses: actions/upload-artifact@v4
@@ -35,7 +35,7 @@ jobs:
         name: nupkg-avalonia
         path: out/*.nupkg
 
-  # Lw.Mvux.Wpf — Windows SDK required (UseWPF)
+  # Luke.Mvux.Wpf — Windows SDK required (UseWPF)
   pack-wpf:
     runs-on: windows-latest
     steps:
@@ -54,9 +54,9 @@ jobs:
           8.0.x
           10.0.x
 
-    - name: Pack Lw.Mvux.Wpf
+    - name: Pack Luke.Mvux.Wpf
       run: |
-        dotnet pack src/Lw.Mvux.Wpf/Lw.Mvux.Wpf.csproj `
+        dotnet pack src/Luke.Mvux.Wpf/Luke.Mvux.Wpf.csproj `
           -c Release -p:PackageVersion=${{ steps.version.outputs.VERSION }} -o out
 
     - uses: actions/upload-artifact@v4

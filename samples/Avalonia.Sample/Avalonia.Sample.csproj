@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Lw.Mvux.Avalonia\Lw.Mvux.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Luke.Mvux.Avalonia\Luke.Mvux.Avalonia.csproj" />
   </ItemGroup>
 
 </Project>
