@@ -10,6 +10,9 @@
     <RootNamespace>Luke.Mvux.Avalonia</RootNamespace>
     <PackageId>Luke.Mvux.Avalonia</PackageId>
     <Description>Luke.Mvux.Avalonia — MVUX pattern for Avalonia. Includes FeedView control and source generator.</Description>
+    <PackageProjectUrl>https://github.com/lukewire129/MVUX</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lukewire129/MVUX</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageIcon>iocn.png</PackageIcon>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
 
