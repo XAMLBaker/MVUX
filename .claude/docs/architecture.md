@@ -60,9 +60,14 @@ Message<T>.None()           // None (명시적 없음)
 | 클래스 | 메서드 | 설명 |
 |--------|--------|------|
 | `Feed` | `Async(fetch)` | 단발 비동기 피드 |
-| `State` | `Value(v)`, `Empty<T>()`, `Async(fetch)` | 상태 생성 |
+| `State<T>` | `Empty(owner)`, `Value(owner, () => v)`, `Async(owner, fetch)` | owner 지정 상태 생성 (T 명시 필요) |
+| `State` | `Value(owner, () => v)`, `Async(owner, fetch)` | owner 지정 상태 생성 (T 추론) |
 | `ListFeed` | `Async(fetch)`, `AsyncEnumerable(source)` | 읽기 전용 리스트 피드 |
-| `ListState` | `Empty<T>()`, `Value(items)` | 변경 가능한 리스트 상태 |
+| `ListState<T>` | `Empty(owner)`, `Value(owner, () => items)` | owner 지정 리스트 상태 생성 (T 명시 필요) |
+| `ListState` | `Value(owner, () => items)` | owner 지정 리스트 상태 생성 (T 추론) |
+
+`owner` 패턴: `AttachedProperty`(내부 `ConditionalWeakTable`)가 `(owner, key)` → 인스턴스를 캐싱.
+같은 프로퍼티를 여러 번 접근해도 항상 동일한 State 인스턴스 반환. `State<T>`는 owner와 수명을 함께함.
 
 ---
 
@@ -74,14 +79,18 @@ Message<T>.None()           // None (명시적 없음)
 // partial record, 이름은 반드시 "Model"로 끝나야 함
 public partial record WeatherModel(IWeatherService WeatherService)
 {
-    public IState<string> City { get; } = State.Value("Seoul");
+    // State/ListState는 => (computed property) + owner 패턴 사용
+    // { get; } = 초기화식에서는 this 사용 불가
+    public IState<string> City => State.Value(this, () => "Seoul");
 
     // IFeed<T>: City 변경 시 자동 재실행 (SelectAsyncFeed가 City를 구독)
     public IFeed<WeatherInfo> CurrentWeather =>
         City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));
 
-    public IListState<string> Favorites { get; } = ListState.Empty<string>();
-    public IState<string> SelectedFavorite { get; } = State.Empty<string>();
+    public IListState<string> Favorites => ListState.Value(this, () => new List<string> { "Seoul" });
+
+    // T 추론 불가한 경우 State<T> 사용
+    public IState<string> SelectedFavorite => State<string>.Empty(this);
 
     // Selection: Favorites에 SelectedFavorite 연결, 항목 사라지면 자동 초기화
     public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);

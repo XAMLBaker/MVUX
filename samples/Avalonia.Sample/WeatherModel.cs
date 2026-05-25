@@ -20,16 +20,15 @@ public class FakeWeatherService : IWeatherService
 
 public partial record WeatherModel(IWeatherService WeatherService)
 {
-    public IState<string> City { get; } = State.Value("Seoul");
+    public IState<string> City => State.Value(this, () => "Seoul");
 
     public IFeed<WeatherInfo> CurrentWeather =>
         City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));
 
-    public IListState<string> Favorites { get; } = ListState.Value<string>(new List<string> { "Seoul" });
+    public IListState<string> Favorites => ListState.Value(this, () => new List<string> { "Seoul" });
 
-    public IState<string> SelectedFavorite { get; } = State.Empty<string>();
+    public IState<string> SelectedFavorite => State<string>.Empty(this);
 
-    // Favorites에 Selection 연결 — 리스트 갱신 시 없어진 항목은 선택 자동 초기화
     public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);
 
     public async ValueTask AddFavorite(CancellationToken ct)

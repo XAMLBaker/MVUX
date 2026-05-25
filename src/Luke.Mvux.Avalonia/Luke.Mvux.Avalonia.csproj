@@ -17,9 +17,11 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
 
     <MvuxGeneratorPath>..\Luke.Mvux.Generators\bin\$(Configuration)\netstandard2.0\Luke.Mvux.Generators.dll</MvuxGeneratorPath>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\assets\iocn.png" Pack="true" PackagePath="\" />
     <PackageReference Include="Avalonia" Version="11.*" />
   </ItemGroup>

@@ -15,7 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Luke.Mvux.Avalonia" Version="0.0.1" />
+    <ProjectReference Include="..\..\src\Luke.Mvux.Avalonia\Luke.Mvux.Avalonia.csproj" />
+    <ProjectReference Include="..\..\src\Luke.Mvux.Generators\Luke.Mvux.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

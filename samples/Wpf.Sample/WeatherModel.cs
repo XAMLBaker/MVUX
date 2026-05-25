@@ -20,7 +20,7 @@ public class FakeWeatherService : IWeatherService
 
 public partial record WeatherModel(IWeatherService WeatherService)
 {
-    public IState<string> City { get; } = State.Value("Seoul");
+    public IState<string> City { get("Seoul");
 
     public IFeed<WeatherInfo> CurrentWeather =>
         City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));

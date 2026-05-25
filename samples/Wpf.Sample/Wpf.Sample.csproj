@@ -14,5 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Luke.Mvux.Wpf\Luke.Mvux.Wpf.csproj" />
+    <ProjectReference Include="..\..\src\Luke.Mvux.Generators\Luke.Mvux.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>
