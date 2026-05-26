@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 0.0.3)'
+        required: true
 
 jobs:
   # Luke.Mvux.Avalonia — cross-platform, Linux OK
@@ -14,10 +19,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get version from tag
+    - name: Get version
       id: version
       shell: bash
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        fi
 
     - uses: actions/setup-dotnet@v4
       with:
@@ -43,10 +53,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get version from tag
+    - name: Get version
       id: version
       shell: bash
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        fi
 
     - uses: actions/setup-dotnet@v4
       with:
@@ -76,16 +91,21 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Get version from tag
+    - name: Get version
       id: version
       shell: bash
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Get tag message
       id: tag_message
       shell: bash
       run: |
-        MSG=$(git for-each-ref --format='%(contents)' "refs/tags/${{ github.ref_name }}")
+        MSG=$(git for-each-ref --format='%(contents)' "refs/tags/v${{ steps.version.outputs.VERSION }}")
         if [ -z "$MSG" ]; then
           MSG="No release notes provided."
         fi
@@ -114,6 +134,7 @@ jobs:
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
         files: out/*.nupkg
         name: Release v${{ steps.version.outputs.VERSION }}
         body: ${{ steps.tag_message.outputs.MESSAGE }}
