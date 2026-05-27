@@ -4,6 +4,22 @@ namespace Mvux.Core.Tests;
 
 public class StateTests
 {
+    private sealed class Owner
+    {
+        public IState<string> City => State.Value(this, () => "Seoul");
+    }
+
+    [Fact]
+    public void State_Value_WithOwner_ReturnsSameInstance_PerProperty()
+    {
+        var owner = new Owner();
+
+        var first = owner.City;
+        var second = owner.City;
+
+        Assert.Same(first, second);
+    }
+
     [Fact]
     public async Task State_Value_ReplaysCurrent()
     {

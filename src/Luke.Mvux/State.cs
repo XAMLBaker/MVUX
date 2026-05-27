@@ -9,17 +9,29 @@ public static class State<T>
         where TOwner : class
         => AttachedProperty.GetOrCreate(owner, (name!, line), static (o, _) => (IState<T>)new StateImpl<T>(Option<T>.None()));
 
-    public static IState<T> Value<TOwner>(TOwner owner, Func<T> valueProvider)
+    public static IState<T> Value<TOwner>(
+        TOwner owner,
+        Func<T> valueProvider,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => AttachedProperty.GetOrCreate(owner, valueProvider, static (o, vp) => (IState<T>)new StateImpl<T>(Option<T>.Some(vp())));
+        => AttachedProperty.GetOrCreate(owner, (name!, line), (o, _) => (IState<T>)new StateImpl<T>(Option<T>.Some(valueProvider())));
 
-    public static IState<T> Async<TOwner>(TOwner owner, Func<CancellationToken, ValueTask<T>> fetch)
+    public static IState<T> Async<TOwner>(
+        TOwner owner,
+        Func<CancellationToken, ValueTask<T>> fetch,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => AttachedProperty.GetOrCreate(owner, fetch, static (o, f) => (IState<T>)new AsyncState<T>(f));
+        => AttachedProperty.GetOrCreate(owner, (name!, line), (o, _) => (IState<T>)new AsyncState<T>(fetch));
 
-    public static IState<T> Async<TOwner>(TOwner owner, Func<CancellationToken, Task<T>> fetch)
+    public static IState<T> Async<TOwner>(
+        TOwner owner,
+        Func<CancellationToken, Task<T>> fetch,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => AttachedProperty.GetOrCreate(owner, fetch, static (o, f) => (IState<T>)new AsyncState<T>(ct => new ValueTask<T>(f(ct))));
+        => AttachedProperty.GetOrCreate(owner, (name!, line), (o, _) => (IState<T>)new AsyncState<T>(ct => new ValueTask<T>(fetch(ct))));
 }
 
 public static class State

@@ -3,11 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lib="clr-namespace:Luke.Mvux.Wpf;assembly=Luke.Mvux.Wpf"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:Wpf.Demo.Sample"
         Style="{StaticResource MaterialDesignWindow}"
         Title="MVUX Operations Board" Height="740" Width="1200"
         TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
         Background="{DynamicResource MaterialDesign.Brush.Background}"
         FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <Window.Resources>
+        <local:LanguageTextConverter x:Key="Lang"/>
+    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -21,14 +26,19 @@
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                     <materialDesign:PackIcon Kind="MonitorDashboard" Width="32" Height="32" Margin="0,0,10,0"/>
                     <StackPanel>
-                        <TextBlock Text="Operations Board Demo" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
-                        <TextBlock Text="Shows Selection, FeedView states, and command-driven list updates." Opacity="0.7"/>
+                        <TextBlock Text="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Operations Board Demo|운영 보드 데모'}" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                        <TextBlock Text="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Shows Selection, FeedView states, and command-driven list updates.|Selection, FeedView 상태, 명령 기반 리스트 갱신을 보여줍니다.'}" Opacity="0.7"/>
                     </StackPanel>
                 </StackPanel>
-                <Button DockPanel.Dock="Right"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Command="{Binding RefreshCommand, ElementName=InsightFeed}"
-                        Content="Refresh Insight"/>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Margin="0,0,8,0"
+                            Command="{Binding ToggleLanguage}"
+                            Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='ENG / KOR|ENG / KOR'}"/>
+                    <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                            Command="{Binding RefreshCommand, ElementName=InsightFeed}"
+                            Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Refresh Insight|인사이트 새로고침'}"/>
+                </StackPanel>
             </DockPanel>
         </materialDesign:Card>
 
@@ -42,19 +52,19 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBox Grid.Column="0"
-                         materialDesign:HintAssist.Hint="New work item title"
+                         materialDesign:HintAssist.Hint="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='New work item title|새 작업 제목'}"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          Margin="0,0,12,0"
                          Text="{Binding DraftTitle, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Grid.Column="1" Margin="0,0,8,0"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        Command="{Binding AddWorkItem}" Content="Add"/>
+                        Command="{Binding AddWorkItem}" Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Add|추가'}"/>
                 <Button Grid.Column="2" Margin="0,0,8,0"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        Command="{Binding ResolveSelected}" Content="Resolve Selected"/>
+                        Command="{Binding ResolveSelected}" Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Resolve Selected|선택 항목 해결'}"/>
                 <Button Grid.Column="3"
                         Style="{StaticResource MaterialDesignFlatButton}"
-                        Command="{Binding SimulateFailure}" Content="Simulate Failure"/>
+                        Command="{Binding SimulateFailure}" Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Simulate Failure|실패 시뮬레이션'}"/>
             </Grid>
         </materialDesign:Card>
 
@@ -68,7 +78,7 @@
             <materialDesign:Card Grid.Column="0" Padding="12">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Margin="8"
-                               Text="Queue (selection sync without SelectedItem binding)"
+                               Text="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Queue (selection sync without SelectedItem binding)|큐 (SelectedItem 바인딩 없이 선택 동기화)'}"
                                Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
                     <ListView ItemsSource="{Binding QueueWithSelection}">
                         <ListView.ItemTemplate>
@@ -114,7 +124,7 @@
                         <materialDesign:Card Padding="28">
                             <StackPanel HorizontalAlignment="Center">
                                 <materialDesign:PackIcon Kind="CursorDefaultClickOutline" Width="40" Height="40" Opacity="0.5" Margin="0,0,0,10"/>
-                                <TextBlock Text="Pick a work item from the queue" Opacity="0.7"/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Pick a work item from the queue|큐에서 작업 항목을 선택하세요'}" Opacity="0.7"/>
                             </StackPanel>
                         </materialDesign:Card>
                     </DataTemplate>
@@ -125,7 +135,7 @@
                         <materialDesign:Card Padding="30">
                             <StackPanel HorizontalAlignment="Center">
                                 <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" Width="52" Height="52" Margin="0,0,0,12"/>
-                                <TextBlock Text="Analyzing selected work item..." Opacity="0.7"/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Analyzing selected work item...|선택된 작업 항목을 분석 중...'}" Opacity="0.7"/>
                             </StackPanel>
                         </materialDesign:Card>
                     </DataTemplate>
@@ -135,9 +145,9 @@
                     <DataTemplate>
                         <materialDesign:Card Padding="22">
                             <StackPanel>
-                                <TextBlock Text="Insight Fetch Failed" Foreground="IndianRed" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Insight Fetch Failed|인사이트 조회 실패'}" Foreground="IndianRed" FontWeight="Bold" Margin="0,0,0,6"/>
                                 <TextBlock Text="{Binding Error.Message}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                                <Button Content="Retry" Command="{Binding Refresh}" Style="{StaticResource MaterialDesignOutlinedButton}" HorizontalAlignment="Left"/>
+                                <Button Content="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Retry|다시 시도'}" Command="{Binding Refresh}" Style="{StaticResource MaterialDesignOutlinedButton}" HorizontalAlignment="Left"/>
                             </StackPanel>
                         </materialDesign:Card>
                     </DataTemplate>
@@ -147,20 +157,20 @@
                     <DataTemplate>
                         <materialDesign:Card Padding="18">
                             <StackPanel>
-                                <TextBlock Text="Selected Insight" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,10"/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Selected Insight|선택된 인사이트'}" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,10"/>
                                 <TextBlock Text="{Binding Data.Id}" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding Data.Summary}" TextWrapping="Wrap" Margin="0,6,0,10"/>
                                 <TextBlock Text="{Binding Data.Recommendation}" TextWrapping="Wrap" Opacity="0.8" Margin="0,0,0,10"/>
                                 <TextBlock>
-                                    <Run Text="Risk Score: "/>
+                                    <Run Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Risk Score: |위험 점수: '}"/>
                                     <Run Text="{Binding Data.RiskScore}" FontWeight="Bold"/>
                                 </TextBlock>
                                 <TextBlock>
-                                    <Run Text="Escalate: "/>
+                                    <Run Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Escalate: |에스컬레이션: '}"/>
                                     <Run Text="{Binding Data.Escalate}" FontWeight="Bold"/>
                                 </TextBlock>
                                 <TextBlock Margin="0,12,0,0" Opacity="0.6" FontSize="12"
-                                           Text="Tip: click Simulate Failure to see ErrorTemplate, then Refresh."/>
+                                           Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Tip: click Simulate Failure to see ErrorTemplate, then Refresh.|팁: 실패 시뮬레이션 후 ErrorTemplate을 확인하고 새로고침하세요.'}"/>
                             </StackPanel>
                         </materialDesign:Card>
                     </DataTemplate>

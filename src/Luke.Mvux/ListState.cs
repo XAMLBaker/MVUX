@@ -9,9 +9,13 @@ public static class ListState<T>
         where TOwner : class
         => AttachedProperty.GetOrCreate(owner, (name!, line), static (o, _) => (IListState<T>)new ListStateImpl<T>());
 
-    public static IListState<T> Value<TOwner>(TOwner owner, Func<IEnumerable<T>> valueProvider)
+    public static IListState<T> Value<TOwner>(
+        TOwner owner,
+        Func<IEnumerable<T>> valueProvider,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => AttachedProperty.GetOrCreate(owner, valueProvider, static (o, vp) => (IListState<T>)new ListStateImpl<T>(vp()));
+        => AttachedProperty.GetOrCreate(owner, (name!, line), (o, _) => (IListState<T>)new ListStateImpl<T>(valueProvider()));
 }
 
 public static class ListState

@@ -53,6 +53,8 @@ public class FakeOperationsService : IOperationsService
 
 public partial record OperationsModel(IOperationsService OperationsService)
 {
+    public IState<string> Language => State.Value(this, () => "ENG");
+
     public IState<string> DraftTitle => State.Value(this, () => "API latency spike");
 
     public IListState<WorkItem> Queue => ListState.Value(this, () => new List<WorkItem>
@@ -107,5 +109,11 @@ public partial record OperationsModel(IOperationsService OperationsService)
 
         await Queue.InsertAtAsync(0, failing, ct);
         await SelectedWorkItem.SetAsync(failing, ct);
+    }
+
+    public async ValueTask ToggleLanguage(CancellationToken ct)
+    {
+        var current = await Language;
+        await Language.SetAsync(string.Equals(current, "KOR", StringComparison.OrdinalIgnoreCase) ? "ENG" : "KOR", ct);
     }
 }

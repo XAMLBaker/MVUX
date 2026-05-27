@@ -1,10 +1,15 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lib="clr-namespace:Luke.Mvux.Avalonia;assembly=Luke.Mvux.Avalonia"
+        xmlns:local="clr-namespace:Avalonia.Demo.Sample"
         x:Class="Avalonia.Demo.Sample.MainWindow"
         Title="MVUX Operations Board (Avalonia)"
         Width="1180" Height="760"
         WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <local:LanguageTextConverter x:Key="Lang"/>
+    </Window.Resources>
 
     <Window.Styles>
         <Style Selector="Border.card">
@@ -23,25 +28,29 @@
             <Grid ColumnDefinitions="Auto,* ,Auto">
                 <TextBlock Grid.Column="0" Text="OPS" FontSize="30" FontWeight="Bold" Margin="0,0,12,0"/>
                 <StackPanel Grid.Column="1">
-                    <TextBlock Text="Operations Board Demo" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock Classes="muted" Text="Selection sync + FeedView state rendering + command-driven updates."/>
+                    <TextBlock Text="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Operations Board Demo|운영 보드 데모'}" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Classes="muted" Text="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Selection sync + FeedView state rendering + command-driven updates.|Selection 동기화 + FeedView 상태 렌더링 + 명령 기반 업데이트'}"/>
                 </StackPanel>
-                <Button Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Command="{Binding RefreshCommand, ElementName=InsightFeed}"
-                        Content="Refresh Insight"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button VerticalAlignment="Center"
+                            Command="{Binding ToggleLanguage}"
+                            Content="ENG / KOR"/>
+                    <Button VerticalAlignment="Center"
+                            Command="{Binding RefreshCommand, ElementName=InsightFeed}"
+                            Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Refresh Insight|인사이트 새로고침'}"/>
+                </StackPanel>
             </Grid>
         </Border>
 
         <Border Grid.Row="1" Classes="card">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <TextBox Grid.Column="0"
-                         Watermark="New work item title"
+                         Watermark="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='New work item title|새 작업 제목'}"
                          Text="{Binding DraftTitle}"
                          Margin="0,0,10,0" />
-                <Button Grid.Column="1" Content="Add" Command="{Binding AddWorkItem}" Margin="0,0,8,0" />
-                <Button Grid.Column="2" Content="Resolve Selected" Command="{Binding ResolveSelected}" Margin="0,0,8,0" />
-                <Button Grid.Column="3" Content="Simulate Failure" Command="{Binding SimulateFailure}" />
+                <Button Grid.Column="1" Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Add|추가'}" Command="{Binding AddWorkItem}" Margin="0,0,8,0" />
+                <Button Grid.Column="2" Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Resolve Selected|선택 항목 해결'}" Command="{Binding ResolveSelected}" Margin="0,0,8,0" />
+                <Button Grid.Column="3" Content="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Simulate Failure|실패 시뮬레이션'}" Command="{Binding SimulateFailure}" />
             </Grid>
         </Border>
 
@@ -50,7 +59,7 @@
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top"
                                Margin="6,0,6,10"
-                               Text="Queue (SelectedItem binding not required)"
+                               Text="{Binding Language, Converter={StaticResource Lang}, ConverterParameter='Queue (SelectedItem binding not required)|큐 (SelectedItem 바인딩 불필요)'}"
                                FontSize="16"
                                FontWeight="SemiBold"/>
                     <ListBox ItemsSource="{Binding QueueWithSelection}">
@@ -79,8 +88,8 @@
                     <DataTemplate>
                         <Border Classes="card" Margin="0">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="Select a queue item" FontSize="18" FontWeight="SemiBold"/>
-                                <TextBlock Classes="muted" Text="Insight feed starts from the selected item."/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Select a queue item|큐에서 항목을 선택하세요'}" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Classes="muted" Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Insight feed starts from the selected item.|인사이트 피드는 선택 항목에서 시작됩니다.'}"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -91,7 +100,7 @@
                         <Border Classes="card" Margin="0" Padding="28">
                             <StackPanel HorizontalAlignment="Center">
                                 <ProgressBar IsIndeterminate="True" Width="220" Margin="0,0,0,12"/>
-                                <TextBlock Classes="muted" Text="Analyzing selected work item..."/>
+                                <TextBlock Classes="muted" Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Analyzing selected work item...|선택된 작업 항목을 분석 중...'}"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -101,9 +110,9 @@
                     <DataTemplate>
                         <Border Classes="card" Margin="0">
                             <StackPanel>
-                                <TextBlock Text="Insight Fetch Failed" Foreground="IndianRed" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Insight Fetch Failed|인사이트 조회 실패'}" Foreground="IndianRed" FontWeight="Bold" Margin="0,0,0,6"/>
                                 <TextBlock Text="{Binding Error.Message}" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                                <Button Content="Retry" Command="{Binding Refresh}" HorizontalAlignment="Left"/>
+                                <Button Content="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Retry|다시 시도'}" Command="{Binding Refresh}" HorizontalAlignment="Left"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -113,20 +122,20 @@
                     <DataTemplate>
                         <Border Classes="card" Margin="0">
                             <StackPanel>
-                                <TextBlock Text="Selected Insight" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Selected Insight|선택된 인사이트'}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
                                 <TextBlock Text="{Binding Data.Id}" FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding Data.Summary}" TextWrapping="Wrap" Margin="0,6,0,10"/>
                                 <TextBlock Text="{Binding Data.Recommendation}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                                 <TextBlock>
-                                    <Run Text="Risk Score: "/>
+                                    <Run Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Risk Score: |위험 점수: '}"/>
                                     <Run Text="{Binding Data.RiskScore}" FontWeight="Bold"/>
                                 </TextBlock>
                                 <TextBlock Margin="0,4,0,0">
-                                    <Run Text="Escalate: "/>
+                                    <Run Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Escalate: |에스컬레이션: '}"/>
                                     <Run Text="{Binding Data.Escalate}" FontWeight="Bold"/>
                                 </TextBlock>
                                 <TextBlock Classes="muted" Margin="0,12,0,0"
-                                           Text="Tip: use Simulate Failure to verify ErrorTemplate and retry flow."/>
+                                           Text="{Binding Parent.Language, Converter={StaticResource Lang}, ConverterParameter='Tip: use Simulate Failure to verify ErrorTemplate and retry flow.|팁: 실패 시뮬레이션으로 ErrorTemplate과 재시도 흐름을 확인하세요.'}"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

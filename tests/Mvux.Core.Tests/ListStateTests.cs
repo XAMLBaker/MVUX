@@ -4,6 +4,22 @@ namespace Mvux.Core.Tests;
 
 public class ListStateTests
 {
+    private sealed class Owner
+    {
+        public IListState<string> Cities => ListState.Value(this, () => new List<string> { "Seoul" });
+    }
+
+    [Fact]
+    public void ListState_Value_WithOwner_ReturnsSameInstance_PerProperty()
+    {
+        var owner = new Owner();
+
+        var first = owner.Cities;
+        var second = owner.Cities;
+
+        Assert.Same(first, second);
+    }
+
     [Fact]
     public async Task ListState_Empty_ReturnsEmptyList()
     {
@@ -136,18 +152,23 @@ public class ListStateTests
     {
         var collected = new List<List<string>>();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var firstMessageReceived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var reader = Task.Run(async () =>
         {
             await foreach (var msg in state.GetSource(cts.Token))
             {
                 if (msg.Data.IsSome(out var list))
+                {
                     collected.Add(list.ToList());
+                    if (collected.Count == 1)
+                        firstMessageReceived.TrySetResult();
+                }
                 if (collected.Count >= count) break;
             }
         });
 
-        await Task.Delay(20);
+        await firstMessageReceived.Task;
         await mutate();
         await reader;
         return collected;
