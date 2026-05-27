@@ -1,0 +1,137 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lib="clr-namespace:Luke.Mvux.Avalonia;assembly=Luke.Mvux.Avalonia"
+        x:Class="Avalonia.Demo.Sample.MainWindow"
+        Title="MVUX Operations Board (Avalonia)"
+        Width="1180" Height="760"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{DynamicResource SystemChromeLowColor}" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Opacity" Value="0.7" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Margin="20" RowDefinitions="Auto,Auto,*">
+        <Border Grid.Row="0" Classes="card">
+            <Grid ColumnDefinitions="Auto,* ,Auto">
+                <TextBlock Grid.Column="0" Text="OPS" FontSize="30" FontWeight="Bold" Margin="0,0,12,0"/>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Operations Board Demo" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Classes="muted" Text="Selection sync + FeedView state rendering + command-driven updates."/>
+                </StackPanel>
+                <Button Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Command="{Binding RefreshCommand, ElementName=InsightFeed}"
+                        Content="Refresh Insight"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Classes="card">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                <TextBox Grid.Column="0"
+                         Watermark="New work item title"
+                         Text="{Binding DraftTitle}"
+                         Margin="0,0,10,0" />
+                <Button Grid.Column="1" Content="Add" Command="{Binding AddWorkItem}" Margin="0,0,8,0" />
+                <Button Grid.Column="2" Content="Resolve Selected" Command="{Binding ResolveSelected}" Margin="0,0,8,0" />
+                <Button Grid.Column="3" Content="Simulate Failure" Command="{Binding SimulateFailure}" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="1.2*,16,1*">
+            <Border Grid.Column="0" Classes="card" Margin="0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Margin="6,0,6,10"
+                               Text="Queue (SelectedItem binding not required)"
+                               FontSize="16"
+                               FontWeight="SemiBold"/>
+                    <ListBox ItemsSource="{Binding QueueWithSelection}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4" ColumnDefinitions="Auto,*,Auto">
+                                    <TextBlock Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Center" Text="•"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                        <TextBlock Classes="muted">
+                                            <Run Text="{Binding Id}"/>
+                                            <Run Text="  |  "/>
+                                            <Run Text="{Binding Team}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding Priority}" Opacity="0.75" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <lib:FeedView Grid.Column="2" x:Name="InsightFeed" Source="{Binding SelectedInsight}">
+                <lib:FeedView.NoneTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Margin="0">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="Select a queue item" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Classes="muted" Text="Insight feed starts from the selected item."/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.NoneTemplate>
+
+                <lib:FeedView.LoadingTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Margin="0" Padding="28">
+                            <StackPanel HorizontalAlignment="Center">
+                                <ProgressBar IsIndeterminate="True" Width="220" Margin="0,0,0,12"/>
+                                <TextBlock Classes="muted" Text="Analyzing selected work item..."/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.LoadingTemplate>
+
+                <lib:FeedView.ErrorTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Margin="0">
+                            <StackPanel>
+                                <TextBlock Text="Insight Fetch Failed" Foreground="IndianRed" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <TextBlock Text="{Binding Error.Message}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                                <Button Content="Retry" Command="{Binding Refresh}" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.ErrorTemplate>
+
+                <lib:FeedView.FeedDataTemplate>
+                    <DataTemplate>
+                        <Border Classes="card" Margin="0">
+                            <StackPanel>
+                                <TextBlock Text="Selected Insight" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding Data.Id}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Data.Summary}" TextWrapping="Wrap" Margin="0,6,0,10"/>
+                                <TextBlock Text="{Binding Data.Recommendation}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                <TextBlock>
+                                    <Run Text="Risk Score: "/>
+                                    <Run Text="{Binding Data.RiskScore}" FontWeight="Bold"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,4,0,0">
+                                    <Run Text="Escalate: "/>
+                                    <Run Text="{Binding Data.Escalate}" FontWeight="Bold"/>
+                                </TextBlock>
+                                <TextBlock Classes="muted" Margin="0,12,0,0"
+                                           Text="Tip: use Simulate Failure to verify ErrorTemplate and retry flow."/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </lib:FeedView.FeedDataTemplate>
+            </lib:FeedView>
+        </Grid>
+    </Grid>
+</Window>
