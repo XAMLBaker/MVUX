@@ -51,15 +51,15 @@ The source generator is bundled inside each package — no separate generator re
 public partial record WeatherModel(IWeatherService WeatherService)
 {
     // IState<T>: readable/writable reactive state
-    public IState<string> City { get; } = State.Value("Seoul");
+    public IState<string> City => State.Value(this, () => "Seoul");
 
     // IFeed<T>: re-executes automatically whenever City changes
     public IFeed<WeatherInfo> CurrentWeather =>
         City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));
 
     // IListState<T>: full-CRUD reactive list
-    public IListState<string> Favorites { get; } = ListState.Empty<string>();
-    public IState<string> SelectedFavorite { get; } = State.Empty<string>();
+    public IListState<string> Favorites => ListState.Value(this, () => new List<string>());
+    public IState<string> SelectedFavorite => State<string>.Empty(this);
 
     // Selection: auto-clears SelectedFavorite when the item is removed
     public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);

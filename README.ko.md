@@ -51,15 +51,15 @@ dotnet add package Luke.Mvux.Avalonia
 public partial record WeatherModel(IWeatherService WeatherService)
 {
     // IState<T>: 읽기/쓰기 반응형 상태
-    public IState<string> City { get; } = State.Value("Seoul");
+    public IState<string> City => State.Value(this, () => "Seoul");
 
     // IFeed<T>: City 변경 시 자동 재실행
     public IFeed<WeatherInfo> CurrentWeather =>
         City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));
 
     // IListState<T>: 완전한 CRUD 반응형 리스트
-    public IListState<string> Favorites { get; } = ListState.Empty<string>();
-    public IState<string> SelectedFavorite { get; } = State.Empty<string>();
+    public IListState<string> Favorites => ListState.Value(this, () => new List<string>());
+    public IState<string> SelectedFavorite => State<string>.Empty(this);
 
     // Selection: 항목 삭제 시 SelectedFavorite 자동 초기화
     public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);
