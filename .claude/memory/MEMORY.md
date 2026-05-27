@@ -4,4 +4,5 @@
 - [Project Intent](project_intent.md) — Uno MVUX 전파 목적, WPF only, 실험은 extension 프로젝트에서
 
 ## 주요 문서
+- [프로젝트 브리프](../docs/project-brief.md) — 세션 초반 재파악용 짧은 요약
 - [아키텍처 전체 문서](../docs/architecture.md) — 패턴, 타입, 생성 규칙, 스레딩 모델

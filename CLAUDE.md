@@ -4,10 +4,11 @@
 
 새로운 개발 지시가 있을 때 **반드시 먼저 읽어야 할 파일**:
 
-1. `.claude/docs/architecture.md` — 전체 아키텍처, 패턴, 설계 결정
-2. `.claude/memory/MEMORY.md` — 누적된 피드백 및 프로젝트 컨텍스트
+1. `.claude/docs/project-brief.md` — 빠른 프로젝트 컨텍스트 요약
+2. `.claude/docs/architecture.md` — 전체 아키텍처, 패턴, 설계 결정
+3. `.claude/memory/MEMORY.md` — 누적된 피드백 및 프로젝트 컨텍스트
 
-이 두 파일을 읽은 뒤 작업을 시작할 것.
+이 세 파일을 읽은 뒤 작업을 시작할 것.
 
 ---
 
