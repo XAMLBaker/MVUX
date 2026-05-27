@@ -156,31 +156,30 @@ public class FeedView : ContentControl
         _lastMessage = msg;
         _state.Progress = msg.IsLoading;
 
-        if (msg.HasData)
+        switch (FeedViewStateResolver.Resolve(msg))
         {
-            // Data + optional loading (stale refresh) — always show data template
-            _state.Data = msg.DataObject;
-            _state.Error = msg.Error;
-            ContentTemplate = FeedDataTemplate;
-            return;
+            case FeedViewStateKind.Data:
+                _state.Data = msg.DataObject;
+                _state.Error = msg.Error;
+                ContentTemplate = FeedDataTemplate;
+                return;
+
+            case FeedViewStateKind.Error:
+                _state.Data = null;
+                _state.Error = msg.Error;
+                ContentTemplate = ErrorTemplate ?? DefaultErrorTemplate;
+                return;
+
+            case FeedViewStateKind.Loading:
+                _state.Data = null;
+                _state.Error = null;
+                ContentTemplate = LoadingTemplate ?? DefaultLoadingTemplate;
+                return;
+
+            default:
+                ApplyNone();
+                return;
         }
-
-        _state.Data = null;
-        _state.Error = msg.Error;
-
-        if (msg.Error is not null)
-        {
-            ContentTemplate = ErrorTemplate ?? DefaultErrorTemplate;
-            return;
-        }
-
-        if (msg.IsLoading)
-        {
-            ContentTemplate = LoadingTemplate ?? DefaultLoadingTemplate;
-            return;
-        }
-
-        ApplyNone();
     }
 
     private void ApplyNone()
