@@ -126,6 +126,21 @@ public class FeedExtensionsTests
         Assert.Equal("Busan", value);
     }
 
+    [Fact]
+    public async Task Await_AsyncState_ReturnsFetchedValue()
+    {
+        Func<CancellationToken, Task<string>> fetch = async ct =>
+        {
+            await Task.Delay(10, ct);
+            return "Seoul";
+        };
+        var state = State.Async(fetch);
+
+        var value = await state;
+
+        Assert.Equal("Seoul", value);
+    }
+
     // ── Select ──────────────────────────────────────────────────────────────
 
     [Fact]
@@ -215,6 +230,59 @@ public class FeedExtensionsTests
         Assert.Same(ex, errorMsg!.Value.Error);
     }
 
+    [Fact]
+    public async Task SelectAsync_SourceRefresh_KeepsPreviousDataWhileLoading()
+    {
+        var state = State.Value("Seoul");
+        var gate = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var invocation = 0;
+        var messages = new List<Message<string>>();
+        var sync = new object();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        Func<string, CancellationToken, Task<string>> selector = async (city, ct) =>
+        {
+            var current = Interlocked.Increment(ref invocation);
+            if (current == 1)
+                return city.ToUpperInvariant();
+
+            using var registration = ct.Register(() => gate.TrySetCanceled(ct));
+            return await gate.Task;
+        };
+
+        var feed = state.SelectAsync(selector);
+        var loop = Task.Run(async () =>
+        {
+            await foreach (var msg in feed.GetSource(cts.Token))
+            {
+                lock (sync)
+                    messages.Add(msg);
+
+                if (Snapshot().Count >= 4)
+                    break;
+            }
+        });
+
+        await WaitForAsync(() => Snapshot().Any(m => m.HasData && m.Data.Value == "SEOUL"), cts.Token);
+        await state.SetAsync("Busan", cts.Token);
+        await WaitForAsync(() => Snapshot().Any(m => m.HasData && m.IsLoading && m.Data.Value == "SEOUL"), cts.Token);
+        gate.TrySetResult("BUSAN");
+
+        await loop;
+
+        Assert.Collection(Snapshot(),
+            msg => Assert.True(msg.IsLoading),
+            msg => Assert.True(msg.HasData && msg.Data.Value == "SEOUL"),
+            msg => Assert.True(msg.HasData && msg.IsLoading && msg.Data.Value == "SEOUL"),
+            msg => Assert.True(msg.HasData && msg.Data.Value == "BUSAN"));
+
+        List<Message<string>> Snapshot()
+        {
+            lock (sync)
+                return messages.ToList();
+        }
+    }
+
     // ── Where ────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -277,5 +345,14 @@ public class FeedExtensionsTests
         await foreach (var msg in feed.GetSource(cts.Token))
             return msg;
         throw new InvalidOperationException("Feed produced no messages.");
+    }
+
+    private static async Task WaitForAsync(Func<bool> condition, CancellationToken ct)
+    {
+        while (!condition())
+        {
+            ct.ThrowIfCancellationRequested();
+            await Task.Delay(10, ct);
+        }
     }
 }

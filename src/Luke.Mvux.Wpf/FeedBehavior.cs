@@ -111,7 +111,7 @@ public static class FeedBehavior
                     {
                         if (ct.IsCancellationRequested) return;
                         _syncingSelection = true;
-                        _selector.SelectedItem = captured.HasData ? captured.DataObject : null;
+                        SelectionInterop.ApplySelection(_selector, selFeed, captured.HasData ? captured.DataObject : null);
                         _syncingSelection = false;
                     });
                 }
@@ -122,7 +122,7 @@ public static class FeedBehavior
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_syncingSelection || _selFeed == null) return;
-            _ = _selFeed.SetSelectedAsync(_selector.SelectedItem, _cts.Token);
+            _ = _selFeed.SetSelectedAsync(SelectionInterop.ReadSelection(_selector, _selFeed), _cts.Token);
         }
 
         public void Dispose()

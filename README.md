@@ -44,6 +44,32 @@ dotnet add package Luke.Mvux.Avalonia
 
 The source generator is bundled inside each package — no separate generator reference needed.
 
+### 1.5 Initialize MVUX once at app startup
+
+Selection sync is registered at platform startup. Add `UseMvux()` once:
+
+**WPF (`App.xaml.cs`)**
+```csharp
+using Luke.Mvux.Wpf;
+
+protected override void OnStartup(StartupEventArgs e)
+{
+    this.UseMvux();
+    base.OnStartup(e);
+}
+```
+
+**Avalonia (`Program.cs`)**
+```csharp
+using Luke.Mvux.Avalonia;
+
+public static AppBuilder BuildAvaloniaApp() =>
+    AppBuilder.Configure<App>()
+        .UseMvux()
+        .UsePlatformDetect()
+        .LogToTrace();
+```
+
 ### 2. Write a Model
 
 ```csharp

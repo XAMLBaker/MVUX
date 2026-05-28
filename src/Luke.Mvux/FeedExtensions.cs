@@ -158,7 +158,14 @@ public static class FeedExtensions
     private static async Task<T?> GetCurrentAsync<T>(IState<T> state)
     {
         await foreach (var msg in state.GetSource(CancellationToken.None))
-            return msg.Data.SomeOrDefault();
+        {
+            if (msg.Data.IsSome(out var value))
+                return value;
+
+            if (msg.IsNone)
+                return default;
+        }
+
         return default;
     }
 }

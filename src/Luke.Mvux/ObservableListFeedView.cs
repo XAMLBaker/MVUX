@@ -63,6 +63,8 @@ public sealed class ObservableListFeedView<T> : ObservableCollection<T>, ISelect
 
     bool ISelectionFeed.HasSelection => _selFeed != null;
 
+    bool ISelectionFeed.SupportsMultipleSelection => _selFeed?.SupportsMultipleSelection ?? false;
+
     ValueTask ISelectionFeed.SetSelectedAsync(object? item, CancellationToken ct)
         => _selFeed?.SetSelectedAsync(item, ct) ?? ValueTask.CompletedTask;
 

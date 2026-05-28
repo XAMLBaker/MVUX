@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
@@ -21,6 +22,8 @@ internal sealed class SelectionListFeed<T>(
 
     bool ISelectionFeed.HasSelection => true;
 
+    bool ISelectionFeed.SupportsMultipleSelection => false;
+
     ValueTask ISelectionFeed.SetSelectedAsync(object? item, CancellationToken ct)
         => item is T typed ? selectedItem.SetAsync(typed, ct) : selectedItem.SetNoneAsync(ct);
 
@@ -37,7 +40,7 @@ internal sealed class SelectionListFeed<T>(
 
 internal sealed class MultiSelectionListFeed<T>(
     IListFeed<T> source,
-    IState<ImmutableList<T>> selectedItems) : IListFeed<T>
+    IState<ImmutableList<T>> selectedItems) : IListFeed<T>, ISelectionFeed
 {
     public async IAsyncEnumerable<Message<IReadOnlyList<T>>> GetSource(
         [EnumeratorCancellation] CancellationToken ct)
@@ -51,6 +54,16 @@ internal sealed class MultiSelectionListFeed<T>(
         }
     }
 
+    bool ISelectionFeed.HasSelection => true;
+
+    bool ISelectionFeed.SupportsMultipleSelection => true;
+
+    ValueTask ISelectionFeed.SetSelectedAsync(object? item, CancellationToken ct)
+        => selectedItems.SetAsync(ToSelection(item), ct);
+
+    IAsyncEnumerable<IMessage> ISelectionFeed.GetSelectionMessages(CancellationToken ct)
+        => selectedItems.GetMessages(ct);
+
     private async Task PruneStaleAsync(IReadOnlyList<T> list, CancellationToken ct)
     {
         var sel = await selectedItems;
@@ -59,5 +72,16 @@ internal sealed class MultiSelectionListFeed<T>(
         var pruned = sel.RemoveAll(item => !list.Any(x => Equals(x, item)));
         if (pruned.Count != sel.Count)
             await selectedItems.SetAsync(pruned, ct);
+    }
+
+    private static ImmutableList<T> ToSelection(object? item)
+    {
+        if (item is null)
+            return ImmutableList<T>.Empty;
+
+        if (item is IEnumerable items && item is not string)
+            return items.OfType<T>().ToImmutableList();
+
+        return item is T typed ? ImmutableList.Create(typed) : ImmutableList<T>.Empty;
     }
 }

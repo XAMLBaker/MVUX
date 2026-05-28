@@ -44,6 +44,32 @@ dotnet add package Luke.Mvux.Avalonia
 
 소스 제너레이터는 각 패키지에 내장되어 있어 별도 참조가 필요 없습니다.
 
+### 1.5 앱 시작 시 MVUX 1회 초기화
+
+Selection 동기화는 플랫폼 시작 시점에 등록됩니다. `UseMvux()`를 1회 호출하세요.
+
+**WPF (`App.xaml.cs`)**
+```csharp
+using Luke.Mvux.Wpf;
+
+protected override void OnStartup(StartupEventArgs e)
+{
+    this.UseMvux();
+    base.OnStartup(e);
+}
+```
+
+**Avalonia (`Program.cs`)**
+```csharp
+using Luke.Mvux.Avalonia;
+
+public static AppBuilder BuildAvaloniaApp() =>
+    AppBuilder.Configure<App>()
+        .UseMvux()
+        .UsePlatformDetect()
+        .LogToTrace();
+```
+
 ### 2. Model 작성
 
 ```csharp

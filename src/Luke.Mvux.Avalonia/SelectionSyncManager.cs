@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using Luke.Mvux;
 
 namespace Luke.Mvux.Avalonia;
@@ -9,11 +10,22 @@ namespace Luke.Mvux.Avalonia;
 internal static class SelectionSyncManager
 {
     private static readonly ConditionalWeakTable<ISelectionFeed, Registry> _reg = new();
+    private static readonly ConditionalWeakTable<SelectingItemsControl, SelectionChangeTracker> _pendingChanges = new();
+    private static readonly object _initGate = new();
+    private static bool _initialized;
 
     [ModuleInitializer]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2255")]
     internal static void Initialize()
     {
+        lock (_initGate)
+        {
+            if (_initialized)
+                return;
+
+            _initialized = true;
+        }
+
         // ItemsSource가 ISelectionFeed로 설정될 때 → Selector 등록
         ItemsControl.ItemsSourceProperty.Changed
             .AddClassHandler<SelectingItemsControl>((sel, e) => OnItemsSourceChanged(sel, e));
@@ -40,8 +52,19 @@ internal static class SelectionSyncManager
         if (sel.ItemsSource is ISelectionFeed { HasSelection: true } sf)
         {
             var reg = GetRegistry(sf);
-            if (!reg.IsSyncing)
-                _ = sf.SetSelectedAsync(sel.SelectedItem);
+            if (reg.IsSyncing)
+                return;
+
+            var tracker = _pendingChanges.GetOrCreateValue(sel);
+            var version = ++tracker.Version;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (tracker.Version != version || reg.IsSyncing)
+                    return;
+
+                _ = sf.SetSelectedAsync(SelectionInterop.ReadSelection(sel, sf));
+            }, DispatcherPriority.Background);
         }
     }
 
@@ -71,8 +94,10 @@ internal static class SelectionSyncManager
             if (!_selectors.Any(r => r.TryGetTarget(out var s) && s == sel))
                 _selectors.Add(new WeakReference<SelectingItemsControl>(sel));
 
+            _pendingChanges.GetOrCreateValue(sel).Version++;
             IsSyncing = true;
-            sel.SelectedItem = _lastSelection;
+            if (sel.ItemsSource is ISelectionFeed sf)
+                SelectionInterop.ApplySelection(sel, sf, _lastSelection);
             IsSyncing = false;
         }
 
@@ -82,8 +107,17 @@ internal static class SelectionSyncManager
             IsSyncing = true;
             foreach (var r in _selectors.ToList())
                 if (r.TryGetTarget(out var sel))
-                    sel.SelectedItem = item;
+                {
+                    _pendingChanges.GetOrCreateValue(sel).Version++;
+                    if (sel.ItemsSource is ISelectionFeed sf)
+                        SelectionInterop.ApplySelection(sel, sf, item);
+                }
             IsSyncing = false;
         }
+    }
+
+    private sealed class SelectionChangeTracker
+    {
+        public int Version;
     }
 }

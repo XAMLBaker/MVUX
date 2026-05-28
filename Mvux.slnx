@@ -4,6 +4,8 @@
     <Project Path="samples/Avalonia.Sample/Avalonia.Sample.csproj" />
     <Project Path="samples/Wpf.Demo.Sample/Wpf.Demo.Sample.csproj" />
     <Project Path="samples/Avalonia.Demo.Sample/Avalonia.Demo.Sample.csproj" />
+    <Project Path="samples/multiselctions/Wpf.MultiSelection.Sample/Wpf.MultiSelection.Sample.csproj" />
+    <Project Path="samples/multiselctions/Avalonia.MultiSelection.Sample/Avalonia.MultiSelection.Sample.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Luke.Mvux/Luke.Mvux.csproj" />

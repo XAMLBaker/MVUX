@@ -9,11 +9,16 @@ internal sealed class SelectAsyncFeed<T, TResult>(
     public async IAsyncEnumerable<Message<TResult>> GetSource(
         [EnumeratorCancellation] CancellationToken ct)
     {
+        var hasLastResult = false;
+        TResult? lastResult = default;
+
         await foreach (var msg in source.GetSource(ct))
         {
             if (msg.IsLoading && !msg.HasData)
             {
-                yield return Message<TResult>.Loading();
+                yield return hasLastResult
+                    ? Message<TResult>.WithData(lastResult!, isLoading: true)
+                    : Message<TResult>.Loading();
                 continue;
             }
             if (msg.Error != null)
@@ -27,7 +32,9 @@ internal sealed class SelectAsyncFeed<T, TResult>(
                 continue;
             }
 
-            yield return Message<TResult>.Loading();
+            yield return hasLastResult
+                ? Message<TResult>.WithData(lastResult!, isLoading: true)
+                : Message<TResult>.Loading();
 
             var (result, error) = await InvokeAsync(msg.Data.SomeOrDefault()!, ct);
             if (error is OperationCanceledException)
@@ -35,7 +42,11 @@ internal sealed class SelectAsyncFeed<T, TResult>(
             if (error != null)
                 yield return Message<TResult>.Errored(error);
             else
-                yield return Message<TResult>.WithData(result!);
+            {
+                lastResult = result!;
+                hasLastResult = true;
+                yield return Message<TResult>.WithData(lastResult);
+            }
         }
     }
 

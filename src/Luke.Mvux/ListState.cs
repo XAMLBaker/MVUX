@@ -22,9 +22,13 @@ public static class ListState
 {
     // ── owner 패턴 (T 추론 가능한 경우) ─────────────────────────────────────
 
-    public static IListState<TValue> Value<TOwner, TValue>(TOwner owner, Func<IEnumerable<TValue>> valueProvider)
+    public static IListState<TValue> Value<TOwner, TValue>(
+        TOwner owner,
+        Func<IEnumerable<TValue>> valueProvider,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => ListState<TValue>.Value(owner, valueProvider);
+        => ListState<TValue>.Value(owner, valueProvider, name, line);
 
     // ── 기존 API (owner 없음) ────────────────────────────────────────────────
 

@@ -38,17 +38,29 @@ public static class State
 {
     // ── owner 패턴 (T 추론 가능한 경우) ─────────────────────────────────────
 
-    public static IState<TValue> Value<TOwner, TValue>(TOwner owner, Func<TValue> valueProvider)
+    public static IState<TValue> Value<TOwner, TValue>(
+        TOwner owner,
+        Func<TValue> valueProvider,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => State<TValue>.Value(owner, valueProvider);
+        => State<TValue>.Value(owner, valueProvider, name, line);
 
-    public static IState<TValue> Async<TOwner, TValue>(TOwner owner, Func<CancellationToken, ValueTask<TValue>> fetch)
+    public static IState<TValue> Async<TOwner, TValue>(
+        TOwner owner,
+        Func<CancellationToken, ValueTask<TValue>> fetch,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => State<TValue>.Async(owner, fetch);
+        => State<TValue>.Async(owner, fetch, name, line);
 
-    public static IState<TValue> Async<TOwner, TValue>(TOwner owner, Func<CancellationToken, Task<TValue>> fetch)
+    public static IState<TValue> Async<TOwner, TValue>(
+        TOwner owner,
+        Func<CancellationToken, Task<TValue>> fetch,
+        [CallerMemberName] string? name = null,
+        [CallerLineNumber] int line = -1)
         where TOwner : class
-        => State<TValue>.Async(owner, fetch);
+        => State<TValue>.Async(owner, fetch, name, line);
 
     // ── 기존 API (owner 없음) ────────────────────────────────────────────────
 

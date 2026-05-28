@@ -7,6 +7,7 @@ public class ListStateTests
     private sealed class Owner
     {
         public IListState<string> Cities => ListState.Value(this, () => new List<string> { "Seoul" });
+        public IListState<string> Countries => ListState.Value(this, () => new List<string> { "Korea" });
     }
 
     [Fact]
@@ -18,6 +19,19 @@ public class ListStateTests
         var second = owner.Cities;
 
         Assert.Same(first, second);
+    }
+
+    [Fact]
+    public async Task ListState_Value_WithOwner_TypeInference_UsesDistinctKeys_PerProperty()
+    {
+        var owner = new Owner();
+
+        var cities = await FirstAsync(owner.Cities);
+        var countries = await FirstAsync(owner.Countries);
+
+        Assert.Equal(["Seoul"], cities.Data.Value);
+        Assert.Equal(["Korea"], countries.Data.Value);
+        Assert.NotSame(owner.Cities, owner.Countries);
     }
 
     [Fact]

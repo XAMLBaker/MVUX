@@ -1,0 +1,137 @@
+<Window x:Class="Wpf.MultiSelection.Sample.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        x:Name="Root"
+        Style="{StaticResource MaterialDesignWindow}"
+        Title="Multi Selection - MVUX.Wpf" Height="760" Width="1240"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <materialDesign:Card Grid.Row="0" Padding="18" Margin="0,0,0,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="SelectionMultiple" Width="34" Height="34" Margin="0,0,12,0"/>
+                    <StackPanel>
+                        <TextBlock Text="Multi-selection sample" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                        <TextBlock Text="Ctrl or Shift to pick several cards. The right panel mirrors the selected state and the buttons can drive selection back into the list." Opacity="0.7" TextWrapping="Wrap" MaxWidth="760"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border DockPanel.Dock="Right" Background="#1FFFFFFF" CornerRadius="14" Padding="12,8">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Selected" Opacity="0.65" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding SelectedCardItems.Count, FallbackValue=0}" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+        </materialDesign:Card>
+
+        <materialDesign:Card Grid.Row="1" Padding="16" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="New queue card title"
+                         Text="{Binding DraftTitle, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,12,0"/>
+                <Button Grid.Column="1" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding AddCard}" Margin="0,0,8,0" Content="Add"/>
+                <Button Grid.Column="2" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding SelectRecommended}" Margin="0,0,8,0" Content="Select Recommended"/>
+                <Button Grid.Column="3" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding PromoteSelected}" Margin="0,0,8,0" Content="Promote Selected"/>
+                <Button Grid.Column="4" Style="{StaticResource MaterialDesignRaisedButton}" Command="{Binding CompleteSelected}" Content="Complete Selected"/>
+            </Grid>
+        </materialDesign:Card>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.3*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="0.9*"/>
+            </Grid.ColumnDefinitions>
+
+            <materialDesign:Card Grid.Column="0" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Margin="8" Text="Queue (SelectionMode=Extended, no SelectedItems binding)" Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                    <ListBox x:Name="QueueList" ItemsSource="{Binding QueueWithSelection}" SelectionMode="Extended" BorderThickness="0" Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="4" Padding="12" CornerRadius="10" Background="#16000000">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="15"/>
+                                            <TextBlock Margin="0,4,0,0" Opacity="0.68">
+                                                <Run Text="{Binding Id}"/>
+                                                <Run Text="  •  "/>
+                                                <Run Text="{Binding Owner}"/>
+                                                <Run Text="  •  "/>
+                                                <Run Text="{Binding Lane}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Background="#33C5E1A5" CornerRadius="10" Padding="8,4" VerticalAlignment="Top">
+                                            <TextBlock Text="{Binding Escalated}" FontWeight="Bold" FontSize="11"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Grid.Column="2" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                        <TextBlock Text="Mirrored Selection State" Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                        <TextBlock Text="This list is bound directly to the generated SelectedCards property. Clicking Select Recommended updates the UI selection from ViewModel state." Opacity="0.7" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    </StackPanel>
+
+                    <ListBox Grid.Row="1" ItemsSource="{Binding SelectedCardItems}" BorderThickness="0" Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8" Padding="12" Background="#12000000" CornerRadius="10">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                        <TextBlock Margin="0,4,0,0" Opacity="0.68">
+                                            <Run Text="{Binding Id}"/>
+                                            <Run Text="  •  "/>
+                                            <Run Text="{Binding Owner}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}" Command="{Binding ClearSelection}" Margin="0,0,8,0" Content="Clear Selection"/>
+                        <TextBlock VerticalAlignment="Center" Opacity="0.65" Text="Removing cards also prunes stale selections automatically."/>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:Card>
+        </Grid>
+    </Grid>
+</Window>

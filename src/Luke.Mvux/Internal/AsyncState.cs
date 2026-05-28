@@ -10,6 +10,7 @@ internal sealed class AsyncState<T> : IState<T>
     private readonly List<Channel<Message<T>>> _subscribers = [];
     private readonly SemaphoreSlim _lock = new(1, 1);
     private bool _loaded;
+    private bool _loadingStarted;
 
     public AsyncState(Func<CancellationToken, ValueTask<T>> fetch) => _fetch = fetch;
 
@@ -32,7 +33,23 @@ internal sealed class AsyncState<T> : IState<T>
             _lock.Release();
         }
 
-        if (!_loaded)
+        var shouldStartLoad = false;
+
+        await _lock.WaitAsync(ct);
+        try
+        {
+            if (!_loaded && !_loadingStarted)
+            {
+                _loadingStarted = true;
+                shouldStartLoad = true;
+            }
+        }
+        finally
+        {
+            _lock.Release();
+        }
+
+        if (shouldStartLoad)
             _ = LoadAsync(ct);
 
         try
@@ -62,10 +79,12 @@ internal sealed class AsyncState<T> : IState<T>
         }
         catch (OperationCanceledException)
         {
+            await ResetLoadingAsync();
             return;
         }
         catch (Exception ex)
         {
+            await ResetLoadingAsync();
             await BroadcastAsync(Message<T>.Errored(ex));
             return;
         }
@@ -75,6 +94,7 @@ internal sealed class AsyncState<T> : IState<T>
         {
             _current = Option<T>.Some(result);
             _loaded = true;
+            _loadingStarted = false;
         }
         finally
         {
@@ -117,6 +137,19 @@ internal sealed class AsyncState<T> : IState<T>
         {
             foreach (var sub in _subscribers)
                 sub.Writer.TryWrite(msg);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private async ValueTask ResetLoadingAsync()
+    {
+        await _lock.WaitAsync(CancellationToken.None);
+        try
+        {
+            _loadingStarted = false;
         }
         finally
         {

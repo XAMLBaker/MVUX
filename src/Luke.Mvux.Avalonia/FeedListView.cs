@@ -123,7 +123,7 @@ public class FeedListView : ContentControl
                 {
                     if (ct.IsCancellationRequested) return;
                     _syncingSelection = true;
-                    _listBox.SelectedItem = captured.HasData ? captured.DataObject : null;
+                    SelectionInterop.ApplySelection(_listBox, selFeed, captured.HasData ? captured.DataObject : null);
                     _syncingSelection = false;
                 });
             }
@@ -134,7 +134,7 @@ public class FeedListView : ContentControl
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (_syncingSelection || _selFeed == null) return;
-        _ = _selFeed.SetSelectedAsync(_listBox.SelectedItem, _selCts.Token);
+        _ = _selFeed.SetSelectedAsync(SelectionInterop.ReadSelection(_listBox, _selFeed), _selCts.Token);
     }
 
     // ── State display ─────────────────────────────────────────────────────────
