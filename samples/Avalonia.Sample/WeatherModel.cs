@@ -42,4 +42,16 @@ public partial record WeatherModel(IWeatherService WeatherService)
         var selected = await SelectedFavorite;
         if (selected != null) await City.SetAsync(selected, ct);
     }
+
+    public async ValueTask AddFavoriteFromParameter(string city, CancellationToken ct)
+    {
+        if (!string.IsNullOrWhiteSpace(city))
+            await Favorites.AddAsync(city, ct);
+    }
+
+    public ValueTask UseCityFeedValue(string city)
+    {
+        _ = city;
+        return ValueTask.CompletedTask;
+    }
 }

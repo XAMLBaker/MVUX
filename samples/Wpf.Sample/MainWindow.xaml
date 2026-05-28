@@ -36,7 +36,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0"
+                        <TextBox x:Name="CityInput"
+                                 Grid.Column="0"
                                  materialDesign:HintAssist.Hint="Enter city name"
                                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                  Text="{Binding City, UpdateSourceTrigger=PropertyChanged}"
@@ -169,7 +170,7 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal">
+                     <StackPanel Orientation="Horizontal">
                         <Button Style="{StaticResource MaterialDesignFlatButton}"
                                 Command="{Binding AddFavorite}"
                                 Margin="0,0,8,0">
@@ -185,9 +186,18 @@
                                 <TextBlock Text="Go to Selected" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
-                </StackPanel>
-            </materialDesign:Card>
+                        <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding AddFavoriteFromParameter}"
+                                CommandParameter="{Binding Text, ElementName=CityInput}"
+                                Margin="8,0,0,0"
+                                Content="Add From Parameter"/>
+                        <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding UseCityFeedValue}"
+                                Margin="8,0,0,0"
+                                Content="Use Feed Value"/>
+                     </StackPanel>
+                 </StackPanel>
+             </materialDesign:Card>
 
         </StackPanel>
     </ScrollViewer>

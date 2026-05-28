@@ -2,37 +2,48 @@ using System.Windows.Input;
 
 namespace Luke.Mvux;
 
-public interface IAsyncCommand
+public interface IAsyncCommand : ICommand
 {
-    bool CanExecute();
-    Task ExecuteAsync();
-    event EventHandler? CanExecuteChanged;
+    bool IsExecuting { get; }
+    Task ExecuteAsync(object? parameter = null);
 }
 
-public sealed class AsyncCommand(Func<Task> execute) : IAsyncCommand, ICommand
+public sealed class AsyncCommand(
+    Func<object?, CancellationToken, ValueTask> execute,
+    Func<object?, bool>? canExecute = null) : IAsyncCommand
 {
-    private bool _isExecuting;
+    private readonly Func<object?, CancellationToken, ValueTask> _execute = execute;
+    private readonly Func<object?, bool> _canExecute = canExecute ?? (_ => true);
+    private readonly CancellationTokenSource _cts = new();
+    private int _isExecuting;
 
     public event EventHandler? CanExecuteChanged;
+    public bool IsExecuting => Volatile.Read(ref _isExecuting) == 1;
 
-    public bool CanExecute() => !_isExecuting;
+    public bool CanExecute(object? parameter) => !IsExecuting && _canExecute(parameter);
 
-    bool ICommand.CanExecute(object? parameter) => CanExecute();
-    void ICommand.Execute(object? parameter) => _ = ExecuteAsync();
+    public void Execute(object? parameter) => _ = ExecuteAsync(parameter);
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(object? parameter = null)
     {
-        if (_isExecuting) return;
-        _isExecuting = true;
+        if (!CanExecute(parameter))
+            return;
+
+        if (Interlocked.CompareExchange(ref _isExecuting, 1, 0) != 0)
+            return;
+
         CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
         try
         {
-            await execute();
+            await _execute(parameter, _cts.Token);
         }
         finally
         {
-            _isExecuting = false;
+            Interlocked.Exchange(ref _isExecuting, 0);
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    public void Cancel() => _cts.Cancel();
 }

@@ -168,4 +168,18 @@ public static class FeedExtensions
 
         return default;
     }
+
+    public static async ValueTask<T?> GetCurrentAsync<T>(this IFeed<T> feed, CancellationToken ct = default)
+    {
+        await foreach (var msg in feed.GetSource(ct))
+        {
+            if (msg.Data.IsSome(out var value))
+                return value;
+
+            if (msg.IsNone)
+                return default;
+        }
+
+        return default;
+    }
 }

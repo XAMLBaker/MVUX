@@ -42,7 +42,8 @@
                 <StackPanel>
                     <TextBlock Classes="label" Text="SEARCH" />
                     <Grid ColumnDefinitions="*,Auto">
-                        <TextBox Grid.Column="0"
+                        <TextBox x:Name="CityInput"
+                                 Grid.Column="0"
                                  Watermark="Enter city name"
                                  Text="{Binding City}"
                                  Margin="0,0,12,0"
@@ -148,6 +149,13 @@
                                 Margin="0,0,8,0" />
                         <Button Content="→  Go to Selected"
                                 Command="{Binding GoToSelected}" />
+                        <Button Content="＋ Parameter"
+                                Command="{Binding AddFavoriteFromParameter}"
+                                CommandParameter="{Binding Text, ElementName=CityInput}"
+                                Margin="8,0,0,0" />
+                        <Button Content="↻ Feed Value"
+                                Command="{Binding UseCityFeedValue}"
+                                Margin="8,0,0,0" />
                     </StackPanel>
                 </StackPanel>
             </Border>

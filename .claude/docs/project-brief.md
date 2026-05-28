@@ -30,7 +30,8 @@
 - 새 State/ListState 프로퍼티는 owner 패턴을 우선 사용한다: `State.Value(this, () => value)`, `State<T>.Empty(this)`, `ListState.Value(this, () => items)`.
 - owner 없는 `State.Value(value)`, `State.Empty<T>()`, `ListState.Value(items)` 등은 기존 API/호환용으로 남아 있으나 새 예제의 기본값으로 삼지 않는다.
 - `IFeed<T>` 프로퍼티는 보통 다른 state를 구독하는 연산자 조합으로 만든다: `City.SelectAsync((city, ct) => ...)`.
-- 커맨드가 되어야 하는 Model 메서드는 `public`, `Task`/`ValueTask` 반환, 파라미터 없음 또는 `CancellationToken` 하나만 사용한다.
+- 커맨드가 되어야 하는 Model 메서드는 `public`이며 `void`/`Task`/`ValueTask`를 반환할 수 있다.
+- 파라미터 규칙은 Uno Commands 기준을 따른다: optional trailing `CancellationToken`, optional view `CommandParameter` 1개, feed name/type 매칭 파라미터(암시적/명시적) 지원.
 
 ## Generator에서 특히 중요한 규칙
 

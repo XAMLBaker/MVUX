@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Reflection;
-using System.Windows.Input;
 using Luke.Mvux.Generators;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -87,10 +86,15 @@ public class ViewModelGeneratorTests
 
         var result = RunGenerator(source);
 
-        Assert.Contains("public ICommand AddFavorite { get; }", result.GeneratedSource);
-        Assert.Contains("public ICommand Refresh { get; }", result.GeneratedSource);
-        Assert.Contains("AddFavorite = new AsyncCommand(() => _model.AddFavorite(_cts.Token).AsTask());", result.GeneratedSource);
-        Assert.Contains("Refresh = new AsyncCommand(() => _model.Refresh());", result.GeneratedSource);
+        Assert.Contains("public global::Luke.Mvux.IAsyncCommand AddFavorite { get; }", result.GeneratedSource);
+        Assert.Contains("public global::Luke.Mvux.IAsyncCommand Refresh { get; }", result.GeneratedSource);
+        Assert.Contains("public global::Luke.Mvux.IAsyncCommand Save { get; }", result.GeneratedSource);
+        Assert.Contains("AddFavorite = new AsyncCommand(", result.GeneratedSource);
+        Assert.Contains("_model.AddFavorite(ct)", result.GeneratedSource);
+        Assert.Contains("Refresh = new AsyncCommand(", result.GeneratedSource);
+        Assert.Contains("_model.Refresh()", result.GeneratedSource);
+        Assert.Contains("Save = new AsyncCommand(", result.GeneratedSource);
+        Assert.Contains("_model.Save()", result.GeneratedSource);
     }
 
     [Fact]
@@ -105,7 +109,7 @@ public class ViewModelGeneratorTests
 
             public partial record InvalidCommandsModel()
             {
-                public Task WithParameter(string city) => Task.CompletedTask;
+                public Task WithParameter(string city, int count) => Task.CompletedTask;
                 public Task<int> ReturnsGenericTask() => Task.FromResult(1);
                 public static Task StaticMethod() => Task.CompletedTask;
                 private Task Hidden() => Task.CompletedTask;
@@ -115,6 +119,95 @@ public class ViewModelGeneratorTests
         var result = RunGenerator(source);
 
         Assert.Equal(string.Empty, result.GeneratedSource);
+    }
+
+    [Fact]
+    public void Generates_Command_For_Single_CommandParameter_Method()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using Luke.Mvux;
+
+            namespace Demo;
+
+            public partial record ParamModel()
+            {
+                public ValueTask DoWork(string city) => ValueTask.CompletedTask;
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        Assert.Contains("public global::Luke.Mvux.IAsyncCommand DoWork { get; }", result.GeneratedSource);
+        Assert.Contains("DoWork = new AsyncCommand(", result.GeneratedSource);
+        Assert.Contains("if (p is not string arg) return;", result.GeneratedSource);
+        Assert.Contains("_model.DoWork(arg)", result.GeneratedSource);
+    }
+
+    [Fact]
+    public void Generates_PassThrough_Method_When_Command_Disabled()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using Luke.Mvux;
+
+            namespace Demo;
+
+            public partial record WorkModel()
+            {
+                [Command(false)]
+                public ValueTask Save() => ValueTask.CompletedTask;
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        Assert.DoesNotContain("public global::Luke.Mvux.IAsyncCommand Save { get; }", result.GeneratedSource);
+        Assert.Contains("public System.Threading.Tasks.ValueTask Save() => _model.Save();", result.GeneratedSource);
+    }
+
+    [Fact]
+    public void Resolves_Feed_Parameter_By_Name_And_Type()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using Luke.Mvux;
+
+            namespace Demo;
+
+            public partial record CounterModel()
+            {
+                public IState<int> CounterValue => State.Value(this, () => 1);
+                public ValueTask ResetCounter(int counterValue) => ValueTask.CompletedTask;
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        Assert.Contains("await global::Luke.Mvux.FeedExtensions.GetCurrentAsync(_model.CounterValue, ct)", result.GeneratedSource);
+        Assert.Contains("_model.ResetCounter(__counterValue)", result.GeneratedSource);
+    }
+
+    [Fact]
+    public void Honors_ImplicitCommands_Disabled_At_Class_Level()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using Luke.Mvux;
+
+            namespace Demo;
+
+            [ImplicitCommands(false)]
+            public partial record WorkModel()
+            {
+                public ValueTask Save() => ValueTask.CompletedTask;
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        Assert.DoesNotContain("public global::Luke.Mvux.IAsyncCommand Save { get; }", result.GeneratedSource);
+        Assert.Contains("public System.Threading.Tasks.ValueTask Save() => _model.Save();", result.GeneratedSource);
     }
 
     [Fact]
@@ -139,7 +232,9 @@ public class ViewModelGeneratorTests
         var result = RunGenerator(source);
 
         var errors = result.OutputDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
-        Assert.True(errors.Count == 0, string.Join(Environment.NewLine, errors.Select(e => e.ToString())));
+        Assert.True(
+            errors.Count == 0,
+            string.Join(Environment.NewLine, errors.Select(e => e.ToString())) + Environment.NewLine + result.GeneratedSource);
     }
 
     private static (string GeneratedSource, ImmutableArray<Diagnostic> OutputDiagnostics) RunGenerator(string source)
@@ -186,34 +281,35 @@ public class ViewModelGeneratorTests
     }
 
     private static string SampleModelSource()
-        => """
-           using System.Collections.Generic;
-           using System.Threading;
-           using System.Threading.Tasks;
-           using Luke.Mvux;
+        => @"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Luke.Mvux;
 
-           namespace Demo;
+namespace Demo;
 
-           public interface IWeatherService
-           {
-               Task<WeatherInfo> GetWeatherAsync(string city, CancellationToken ct);
-           }
+public interface IWeatherService
+{
+    Task<WeatherInfo> GetWeatherAsync(string city, CancellationToken ct);
+}
 
-           public record WeatherInfo(string City, double Temperature, string Condition);
+public record WeatherInfo(string City, double Temperature, string Condition);
 
-           public partial record WeatherModel(IWeatherService WeatherService)
-           {
-               public IState<string> City => State.Value(this, () => "Seoul");
+public partial record WeatherModel(IWeatherService WeatherService)
+{
+    public IState<string> City => State.Value(this, () => ""Seoul"");
 
-               public IFeed<WeatherInfo> CurrentWeather =>
-                   City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));
+    public IFeed<WeatherInfo> CurrentWeather =>
+        City.SelectAsync((city, ct) => WeatherService.GetWeatherAsync(city, ct));
 
-               public IListState<string> Favorites => ListState.Value(this, () => new List<string>());
-               public IState<string> SelectedFavorite => State<string>.Empty(this);
-               public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);
+    public IListState<string> Favorites => ListState.Value(this, () => new List<string>());
+    public IState<string> SelectedFavorite => State<string>.Empty(this);
+    public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);
 
-               public ValueTask AddFavorite(CancellationToken ct) => ValueTask.CompletedTask;
-               public Task Refresh() => Task.CompletedTask;
-           }
-           """;
+    public ValueTask AddFavorite(CancellationToken ct) => ValueTask.CompletedTask;
+    public Task Refresh() => Task.CompletedTask;
+    public void Save() { }
+}
+";
 }

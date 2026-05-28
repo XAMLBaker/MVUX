@@ -95,9 +95,11 @@ public partial record WeatherModel(IWeatherService WeatherService)
     // Selection: Favorites에 SelectedFavorite 연결, 항목 사라지면 자동 초기화
     public IListFeed<string> FavoritesWithSelection => Favorites.Selection(SelectedFavorite);
 
-    // 커맨드: public, ValueTask/Task 반환, 파라미터 없거나 CancellationToken 하나
+    // 커맨드: public, void/Task/ValueTask, optional trailing CT,
+    // optional view parameter 1개 + feed-resolved parameters
     public async ValueTask AddFavorite(CancellationToken ct) { ... }
-    public async ValueTask GoToSelected(CancellationToken ct) { ... }
+    public void DoWork(double amount) { ... } // CommandParameter
+    public void ResetCounter(int counterValue) { ... } // feed parameter injection
 }
 ```
 
@@ -110,7 +112,16 @@ Generator가 `*Model` partial record를 감지해 `*ViewModel`을 자동 생성.
 | `IFeed<T>` | `public IFeed<T> Name => _model.Name;` — FeedView가 직접 구독 |
 | `IState<T>` | `public T? Name { get; set; }` + INPC + `SynchronizationContext.Post` + SetAsync/SetNoneAsync |
 | `IListFeed<T>` / `IListState<T>` | `public ObservableCollection<T> Name` — `ObservableListFeedView<T>` 래핑 |
-| `ValueTask/Task` 메서드 (0~1 CT 파라미터) | `public ICommand Name { get; }` — AsyncCommand 래핑 |
+| command 대상 메서드 (`void`/`Task`/`ValueTask`) | `public IAsyncCommand Name { get; }` — AsyncCommand 래핑 |
+
+명령 생성/매핑 규칙:
+
+- 기본은 implicit command generation (`ImplicitCommands=true`)
+- 메서드 `[Command(false)]`면 command 대신 동일 시그니처 pass-through method 생성
+- class/assembly `[ImplicitCommands(false)]`로 기본 비활성화 후 `[Command]`로 개별 opt-in 가능
+- `CommandParameter`는 메서드의 non-feed 파라미터 1개에 매핑되고 타입 불일치/`null`이면 실행 불가
+- feed 파라미터는 이름+타입(case-insensitive)으로 암시 매칭, `[FeedParameter(nameof(...))]`로 명시 매칭 가능
+- `[ImplicitFeedCommandParameter(false)]`로 암시 feed 매칭을 끌 수 있음
 
 ### ViewModel 생성자 패턴
 
