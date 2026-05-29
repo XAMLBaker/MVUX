@@ -2,6 +2,14 @@
 
 [**English**](README.md)
 
+**WPF**
+[![NuGet](https://img.shields.io/nuget/v/Luke.Mvux.Wpf.svg)](https://www.nuget.org/packages/Luke.Mvux.Wpf/) 
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Luke.Mvux.Wpf.svg)](https://www.nuget.org/packages/Luke.Mvux.Wpf/)
+
+**Avalonia**
+[![NuGet](https://img.shields.io/nuget/v/Luke.Mvux.Avalonia.svg)](https://www.nuget.org/packages/Luke.Mvux.Avalonia/) 
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Luke.Mvux.Avalonia.svg)](https://www.nuget.org/packages/Luke.Mvux.Avalonia/)
+
 Uno Platform [uno.extensions](https://github.com/unoplatform/uno.extensions)의 MVUX 패턴 API(`IFeed`, `IState`, `IListState`, `Option<T>`, `Message<T>` 등)를 그대로 모방하여 **WPF와 Avalonia**에서 독립적으로 재구현한 라이브러리입니다. `FeedView` 컨트롤, Roslyn 소스 제너레이터를 포함합니다.
 
 > **이 프로젝트는** Uno Platform MVUX의 API 설계(인터페이스명, 메서드 시그니처, 타입 구조)를 의도적으로 동일하게 따라 만들었습니다. 소스 코드를 복사한 것이 아니라 WPF·Avalonia 환경에 맞게 처음부터 새로 구현했습니다. Uno Platform 팀과 공식적인 관계는 없습니다.

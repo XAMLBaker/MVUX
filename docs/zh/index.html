@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Luke.Mvux 中文文档</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Luke.Mvux</div>
+        <div class="brand-desc">在 WPF 与 Avalonia 上使用 MVUX 模式的中文文档</div>
+      </div>
+
+      <div class="lang-switch">
+        <a href="../ko/">한국어</a>
+        <a href="../en/">English</a>
+        <a class="active" href="./">中文</a>
+      </div>
+
+      <div class="nav-section"><div class="nav-title">开始</div><a class="nav-link active" href="./">概览</a><a class="nav-link" href="state/">State</a><a class="nav-link" href="list-feed/">ListFeed</a><a class="nav-link" href="list-state/">ListState</a><a class="nav-link" href="selection/">Selection</a><a class="nav-link" href="when-selected/">WhenSelected</a><a class="nav-link" href="commands/">Commands</a><a class="nav-link" href="feed-view/">FeedView</a><a class="nav-link" href="faq/">FAQ</a></div><div class="nav-section"><div class="nav-title">参考</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">韩文优先文档</div>
+          <h1>在 WPF 和 Avalonia 中<br />使用 MVUX 模式</h1>
+          <p class="lead">
+            Luke.Mvux 是对 Uno Platform MVUX API 风格的独立重实现，目标平台是 WPF 与 Avalonia。
+            核心思路是把 <code>Feed</code>、<code>State</code>、<code>Message</code>、<code>Option</code>、<code>FeedView</code>、<code>Selection</code>、<code>Commands</code> 分离，让 UI 状态流更明确。
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="#quick-start">快速开始</a>
+            <a class="button" href="selection/">查看 Selection</a>
+            <a class="button" href="feed-view/">查看 FeedView</a>
+          </div>
+        </div>
+
+        <div class="panel hero-side">
+          <div class="stat-grid">
+            <div class="stat"><small>支持平台</small><strong>WPF, Avalonia</strong></div>
+            <div class="stat"><small>包</small><strong>Luke.Mvux.Wpf, Luke.Mvux.Avalonia</strong></div>
+            <div class="stat"><small>编写方式</small><strong>partial record Model + generator</strong></div>
+            <div class="stat"><small>目标</small><strong>XAML 保持简单，状态流保持显式</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="quick-start" class="card" style="margin-top:16px;">
+        <h2>快速开始</h2>
+        <p>安装平台包后，控件与源生成器会一起提供。</p>
+        <pre><code>dotnet add package Luke.Mvux.Wpf
+dotnet add package Luke.Mvux.Avalonia</code></pre>
+        <p>Selection 同步只需在应用启动时注册一次。</p>
+        <pre><code>// WPF
+protected override void OnStartup(StartupEventArgs e)
+{
+    this.UseMvux();
+    base.OnStartup(e);
+}
+
+// Avalonia
+AppBuilder.Configure&lt;App&gt;()
+    .UseMvux()
+    .UsePlatformDetect();</code></pre>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>1. State</h2>
+          <p><code>IState&lt;T&gt;</code> 表示当前值。适合输入值、选择值等可写场景。</p>
+          <p><a class="button" href="state/">State 文档</a></p>
+        </article>
+        <article class="card">
+          <h2>2. Feed</h2>
+          <p><code>IFeed&lt;T&gt;</code> 是只读数据流。适合 API 查询、计算结果、派生数据。</p>
+          <p><a class="button" href="list-feed/">ListFeed 文档</a></p>
+        </article>
+        <article class="card">
+          <h2>3. View</h2>
+          <p><code>FeedView</code> 与 generator 会把 feed/state 连接成 WPF/Avalonia 的绑定形态。</p>
+          <p><a class="button" href="feed-view/">FeedView 文档</a></p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>核心模型示例</h2>
+        <pre><code>public partial record WeatherModel(IWeatherService WeatherService)
+{
+    public IState&lt;string&gt; City =&gt; State.Value(this, () =&gt; "Seoul");
+
+    public IFeed&lt;WeatherInfo&gt; CurrentWeather =&gt;
+        City.SelectAsync((city, ct) =&gt; WeatherService.GetWeatherAsync(city, ct));
+
+    public IListState&lt;string&gt; Favorites =&gt;
+        ListState.Value(this, () =&gt; new List&lt;string&gt;());
+
+    public IState&lt;string&gt; SelectedFavorite =&gt; State&lt;string&gt;.Empty(this);
+
+    public IListFeed&lt;string&gt; FavoritesWithSelection =&gt;
+        Favorites.Selection(SelectedFavorite);
+
+    public async ValueTask AddFavorite(CancellationToken ct)
+    {
+        var city = await City;
+        if (city != null)
+            await Favorites.AddAsync(city, ct);
+    }
+}</code></pre>
+      </section>
+
+      <section id="api" class="card" style="margin-top:16px;">
+        <h2>API 一览</h2>
+        <table class="table">
+          <thead>
+            <tr><th>API</th><th>作用</th><th>常用场景</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Option&lt;T&gt;</code></td><td>Undefined / None / Some 三段值</td><td>表达数据是否存在</td></tr>
+            <tr><td><code>Message&lt;T&gt;</code></td><td>Data / IsLoading / Error 独立轴</td><td>加载时保留旧数据</td></tr>
+            <tr><td><code>IFeed&lt;T&gt;</code></td><td>只读响应式数据流</td><td>API 查询、派生数据</td></tr>
+            <tr><td><code>IState&lt;T&gt;</code></td><td>可读可写单值状态</td><td>输入值、选择值、当前值</td></tr>
+            <tr><td><code>IListFeed&lt;T&gt;</code></td><td>只读列表 feed</td><td>查询列表、计算列表</td></tr>
+            <tr><td><code>IListState&lt;T&gt;</code></td><td>可修改列表状态</td><td>收藏、队列、编辑列表</td></tr>
+            <tr><td><code>FeedView</code></td><td>渲染 Loading / Data / Error / None</td><td>XAML 状态界面</td></tr>
+            <tr><td><code>Selection</code></td><td>连接列表与选择状态</td><td>去掉 SelectedItem 绑定</td></tr>
+            <tr><td><code>WhenSelected</code></td><td>Selection 的 MVVM 友好便捷 API</td><td>更易读的选择示例</td></tr>
+            <tr><td><code>Commands</code></td><td>把模型方法生成为 ICommand</td><td>按钮、菜单、CommandParameter</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Feed 运算符</h2>
+          <ul>
+            <li>用 <code>Select</code> 与 <code>SelectAsync</code> 转换值。</li>
+            <li>用 <code>Where</code> 添加消息数据条件。</li>
+            <li>用 <code>ForEachAsync</code> 构建手动订阅循环。</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>List 运算符</h2>
+          <ul>
+            <li><code>ListFeed.Value</code> 用于固定列表。</li>
+            <li><code>ListFeed.Async</code> 用于异步查询列表。</li>
+            <li><code>Selection</code> 是基础选择 API。</li>
+            <li><code>WhenSelected</code> 是同等行为的便捷 API。</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>State 运算符</h2>
+          <ul>
+            <li>用 <code>SetAsync</code> 设置值。</li>
+            <li>用 <code>UpdateAsync</code> 基于当前值更新。</li>
+            <li>用 <code>SetNoneAsync</code> 表达显式空状态。</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>示例</h2>
+        <ul>
+          <li><code>samples/Wpf.Sample</code> 与 <code>samples/Avalonia.Sample</code>：基础 Weather + Favorites 流程</li>
+          <li><code>samples/WhenSelectedTest/Wpf.WhenSelected.Sample</code>：WPF 单选 WhenSelected</li>
+          <li><code>samples/WhenSelectedTest/Avalonia.WhenSelected.Sample</code>：Avalonia 单选 WhenSelected</li>
+          <li><code>samples/multiselctions/*</code>：多选流程</li>
+        </ul>
+      </section>
+
+      <section class="card" style="margin-top:16px; margin-bottom:24px;">
+        <h2>下一步建议阅读</h2>
+        <p>如果你是第一次接触，建议按顺序阅读：<code>State</code>、<code>ListFeed</code>、<code>ListState</code>、<code>Selection</code>、<code>WhenSelected</code>、<code>FeedView</code>、<code>Commands</code>。</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

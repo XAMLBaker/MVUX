@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAQ - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-name">Luke.Mvux</div><div class="brand-desc">English docs</div></div>
+      <div class="lang-switch"><a href="../../ko/faq/">한국어</a><a class="active" href="./">English</a><a href="../../zh/faq/">中文</a></div>
+      <div class="nav-section"><div class="nav-title">Start</div><a class="nav-link" href="../">Overview</a><a class="nav-link" href="../state/">State</a><a class="nav-link" href="../list-feed/">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link" href="../when-selected/">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link active" href="./">FAQ</a></div>
+      <div class="nav-section"><div class="nav-title">Reference</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">FAQ</div>
+          <h1>Common confusion points<br />for first-time readers</h1>
+          <p class="lead">
+            Luke.Mvux adds a feed/state model on top of familiar MVVM. At first, it can look like many names,
+            but the key distinction is whether a type is read-only or writable.
+          </p>
+          <div class="cta-row"><a class="button primary" href="../">Docs home</a><a class="button" href="../selection/">View Selection</a></div>
+        </div>
+        <div class="panel hero-side"><div class="stat-grid"><div class="stat"><small>Scope</small><strong>WPF, Avalonia</strong></div><div class="stat"><small>Purpose</small><strong>Education and demo</strong></div><div class="stat"><small>Core</small><strong>Feed / State / View</strong></div></div></div>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Is this Uno MVUX?</h2>
+          <p>No. It is an independent reimplementation for WPF and Avalonia that mirrors the API shape and usage feel of Uno Platform MVUX. It is not a copied Uno source project.</p>
+        </article>
+        <article class="card">
+          <h2>Which platforms are supported?</h2>
+          <p>Based on current docs and samples, the supported targets are WPF and Avalonia. WinUI 3 and MAUI are outside the current scope.</p>
+        </article>
+        <article class="card">
+          <h2>Is it production-ready?</h2>
+          <p>The primary goal is education and demos. For real apps, you should review API stability, error handling, and platform-specific edge cases yourself.</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Feed vs State</h2>
+          <p><code>IFeed&lt;T&gt;</code> is a read-only data flow. <code>IState&lt;T&gt;</code> is a feed where you can also read and write the current value.</p>
+        </article>
+        <article class="card">
+          <h2>ListFeed vs ListState</h2>
+          <p>Use <code>ListFeed</code> for lists you display, and <code>ListState</code> for lists you edit. If you need add/remove behavior like favorites, <code>ListState</code> is the right choice.</p>
+        </article>
+        <article class="card">
+          <h2>Why no ListState.Async?</h2>
+          <p>Async fetched lists are handled by <code>ListFeed.Async</code>. If users must edit an initial list, fetch first and then manage it with <code>ListState.Value</code>.</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Selection and WhenSelected</h2>
+          <p><code>Selection</code> is the base API, and <code>WhenSelected</code> is a convenience API for a more MVVM-friendly reading style. Both connect list feed and selection state.</p>
+        </article>
+        <article class="card">
+          <h2>What about SelectedItem binding?</h2>
+          <p>The recommended direction is to avoid it. Connect in the model with <code>Favorites.Selection(SelectedFavorite)</code>, and bind only <code>ItemsSource</code> in XAML.</p>
+        </article>
+        <article class="card">
+          <h2>Why is UseMvux needed?</h2>
+          <p>Selection sync must connect with platform controls. Call <code>UseMvux()</code> once at app startup to register WPF/Avalonia selection synchronization.</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px; margin-bottom:24px;">
+        <article class="card">
+          <h2>Why use the owner pattern?</h2>
+          <p>Passing owner like <code>State.Value(this, () =&gt; value)</code> allows reusing the same state instance even when the same model property is accessed multiple times.</p>
+        </article>
+        <article class="card">
+          <h2>How are command names mapped?</h2>
+          <p>They are exposed with the same method name. A method like <code>AddFavorite</code> binds as <code>Command="{Binding AddFavorite}"</code>.</p>
+        </article>
+        <article class="card">
+          <h2>Recommended reading order</h2>
+          <p>If you are new, read in this order: State, ListFeed, ListState, Selection, WhenSelected, FeedView, Commands.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

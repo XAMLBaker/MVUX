@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAQ - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-name">Luke.Mvux</div><div class="brand-desc">中文文档</div></div>
+      <div class="lang-switch"><a href="../../ko/faq/">한국어</a><a href="../../en/faq/">English</a><a class="active" href="./">中文</a></div>
+      <div class="nav-section"><div class="nav-title">开始</div><a class="nav-link" href="../">概览</a><a class="nav-link" href="../state/">State</a><a class="nav-link" href="../list-feed/">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link" href="../when-selected/">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link active" href="./">FAQ</a></div>
+      <div class="nav-section"><div class="nav-title">参考</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">FAQ</div>
+          <h1>首次阅读时<br />容易混淆的点</h1>
+          <p class="lead">
+            Luke.Mvux 在熟悉的 MVVM 之上增加了 feed/state 模型。刚开始看会觉得名字很多，
+            但判断标准很简单：它是只读，还是可写。
+          </p>
+          <div class="cta-row"><a class="button primary" href="../">文档首页</a><a class="button" href="../selection/">查看 Selection</a></div>
+        </div>
+        <div class="panel hero-side"><div class="stat-grid"><div class="stat"><small>范围</small><strong>WPF, Avalonia</strong></div><div class="stat"><small>目的</small><strong>教学与演示</strong></div><div class="stat"><small>核心</small><strong>Feed / State / View</strong></div></div></div>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>这是 Uno MVUX 吗？</h2>
+          <p>不是。这是一个面向 WPF 与 Avalonia 的独立重实现，目标是复现 Uno Platform MVUX 的 API 形态和使用体验。并不是复制 Uno 源码的项目。</p>
+        </article>
+        <article class="card">
+          <h2>支持哪些平台？</h2>
+          <p>按当前文档和示例，支持目标是 WPF 和 Avalonia。WinUI 3 与 MAUI 不在当前范围内。</p>
+        </article>
+        <article class="card">
+          <h2>可以直接用于生产吗？</h2>
+          <p>项目主要目标是教学和演示。用于真实应用时，需要你自行评估 API 稳定性、错误处理以及平台边界场景。</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Feed 和 State 的区别</h2>
+          <p><code>IFeed&lt;T&gt;</code> 是只读数据流。<code>IState&lt;T&gt;</code> 是既可读取当前值、也可写入当前值的 feed。</p>
+        </article>
+        <article class="card">
+          <h2>ListFeed 和 ListState 的区别</h2>
+          <p><code>ListFeed</code> 用于展示列表，<code>ListState</code> 用于可编辑列表。像收藏夹这种需要增删的场景，应使用 <code>ListState</code>。</p>
+        </article>
+        <article class="card">
+          <h2>为什么没有 ListState.Async？</h2>
+          <p>异步查询列表由 <code>ListFeed.Async</code> 负责。如果用户需要编辑初始列表，建议先查询，再用 <code>ListState.Value</code> 管理。</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Selection 与 WhenSelected</h2>
+          <p><code>Selection</code> 是基础 API，<code>WhenSelected</code> 是为了 MVVM 阅读体验提供的便捷 API。两者都会连接列表 feed 与选择 state。</p>
+        </article>
+        <article class="card">
+          <h2>还要绑定 SelectedItem 吗？</h2>
+          <p>推荐不绑定。应在模型中用 <code>Favorites.Selection(SelectedFavorite)</code> 连接，XAML 只绑定 <code>ItemsSource</code>。</p>
+        </article>
+        <article class="card">
+          <h2>为什么需要 UseMvux？</h2>
+          <p>选择同步需要与平台控件连接。应用启动时调用一次 <code>UseMvux()</code>，才能注册 WPF/Avalonia 的 selection sync。</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px; margin-bottom:24px;">
+        <article class="card">
+          <h2>为什么使用 owner 模式？</h2>
+          <p>像 <code>State.Value(this, () =&gt; value)</code> 这样传入 owner 后，即使多次访问同一模型属性，也会复用同一个 state 实例。</p>
+        </article>
+        <article class="card">
+          <h2>命令名如何映射？</h2>
+          <p>按方法名原样暴露。比如 <code>AddFavorite</code> 方法，绑定方式就是 <code>Command="{Binding AddFavorite}"</code>。</p>
+        </article>
+        <article class="card">
+          <h2>推荐阅读顺序</h2>
+          <p>如果是第一次接触，建议按以下顺序阅读：State、ListFeed、ListState、Selection、WhenSelected、FeedView、Commands。</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

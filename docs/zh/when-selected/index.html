@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WhenSelected - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Luke.Mvux</div>
+        <div class="brand-desc">面向 WPF 和 Avalonia 的 MVUX 风格响应式库文档</div>
+      </div>
+
+      <div class="lang-switch">
+        <a href="../../ko/when-selected/">한국어</a>
+        <a href="../../en/when-selected/">English</a>
+        <a class="active" href="./">中文</a>
+      </div>
+
+      <div class="nav-section"><div class="nav-title">开始</div><a class="nav-link" href="./">概览</a><a class="nav-link" href="../state/">State</a><a class="nav-link" href="../list-feed/">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link active" href="../when-selected/">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link" href="../faq/">FAQ</a></div><div class="nav-section"><div class="nav-title">参考</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div></aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">WhenSelected</div>
+          <h1>按你想要的方式<br />阅读选择连接</h1>
+          <p class="lead">
+            <code>WhenSelected(...)</code> 的行为与 <code>Selection(...)</code> 相同。
+            差别只在阅读方向：保持列表链式结构，再在末尾补上选择语义。
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="../selection/">Selection</a>
+            <a class="button" href="../list-feed/">ListFeed</a>
+          </div>
+        </div>
+
+        <div class="panel hero-side">
+          <div class="stat-grid">
+            <div class="stat"><small>目标</small><strong><code>IListFeed&lt;T&gt;</code></strong></div>
+            <div class="stat"><small>返回</small><strong><code>IListFeed&lt;T&gt;</code></strong></div>
+            <div class="stat"><small>用途</small><strong>选择语法糖</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>为什么要多一个名字？</h2>
+        <table class="table">
+          <thead>
+            <tr><th>基础 API</th><th>便捷 API</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Favorites.Selection(SelectedFavorite)</code></td><td><code>Favorites.WhenSelected(SelectedFavorite)</code></td></tr>
+            <tr><td><code>Queue.Selection(SelectedCards)</code></td><td><code>Queue.WhenSelected(SelectedCards)</code></td></tr>
+          </tbody>
+        </table>
+        <p>行为完全一致。<code>WhenSelected</code> 更适合用来表达“这个列表会和选择状态一起使用”。</p>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>单选</h2>
+        <pre><code>public IState&lt;string&gt; SelectedCity =&gt; State&lt;string&gt;.Empty(this);
+
+public IListFeed&lt;string&gt; Cities =&gt;
+    ListFeed
+        .Value(["Seoul", "Busan", "Incheon", "Daegu", "Jeju"])
+        .WhenSelected(SelectedCity);</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>XAML</h2>
+        <p>和 <code>Selection</code> 一样，XAML 只绑定列表，不需要 <code>SelectedItem</code> 绑定。</p>
+        <pre><code>&lt;ListBox ItemsSource="{Binding Cities}" /&gt;</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>多选</h2>
+        <pre><code>public IState&lt;ImmutableList&lt;WorkCard&gt;&gt; SelectedCards =&gt;
+    State.Value(this, () =&gt; ImmutableList&lt;WorkCard&gt;.Empty);
+
+public IListFeed&lt;WorkCard&gt; QueueWithSelection =&gt;
+    Queue.WhenSelected(SelectedCards);</code></pre>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px; margin-bottom:24px;">
+        <article class="card">
+          <h2>什么时候用？</h2>
+          <p>当你希望 <code>WhenSelected</code> 比 <code>Selection</code> 更符合 MVVM 读法时使用。</p>
+        </article>
+        <article class="card">
+          <h2>什么时候用 Selection？</h2>
+          <p>当你需要基础 API 名称、代码一致性，或者想直接强调底层行为时使用 <code>Selection</code>。</p>
+        </article>
+        <article class="card">
+          <h2>注意</h2>
+          <p><code>WhenSelected</code> 只适用于列表 feed，不是把单值 feed 转成列表的 projection API。</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
