@@ -223,6 +223,11 @@ listFeed.Select(item => ...)              // IListFeed<TResult> (아이템 단�
 listFeed.Where(item => ...)               // IListFeed<T>       (아이템 단위)
 listFeed.Selection(selectedState)         // 단일 선택 동기화
 listFeed.Selection(selectedItemsState)    // 다중 선택 동기화
+
+ListFeed.Async(ct => WeatherService.GetWeatherListAsync(ct))
+    .WhenSelected(selectedState)          // 리스트 피드 단일 선택 동기화
+ListFeed.Async(ct => WeatherService.GetWeatherListAsync(ct))
+    .WhenSelected(selectedItemsState)     // 리스트 피드 다중 선택 동기화
 ```
 
 ### IListState\<T\>

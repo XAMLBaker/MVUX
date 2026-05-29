@@ -4,6 +4,12 @@ namespace Luke.Mvux;
 
 public static class ListFeed
 {
+    public static IListFeed<T> Value<T>(IReadOnlyList<T> items)
+        => new ValueListFeed<T>(items);
+
+    public static IListFeed<T> Value<T>(IEnumerable<T> items)
+        => new ValueListFeed<T>(new List<T>(items));
+
     public static IListFeed<T> Async<T>(Func<CancellationToken, Task<IReadOnlyList<T>>> fetch)
         => new AsyncListFeed<T>(fetch);
 

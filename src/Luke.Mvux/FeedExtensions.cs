@@ -18,6 +18,16 @@ public static class FeedExtensions
         IState<ImmutableList<T>> selectedItems)
         => new MultiSelectionListFeed<T>(source, selectedItems);
 
+    public static IListFeed<T> WhenSelected<T>(
+        this IListFeed<T> source,
+        IState<T> selectedItem)
+        => new SelectionListFeed<T>(source, selectedItem);
+
+    public static IListFeed<T> WhenSelected<T>(
+        this IListFeed<T> source,
+        IState<ImmutableList<T>> selectedItems)
+        => new MultiSelectionListFeed<T>(source, selectedItems);
+
     // ── IFeed composition ────────────────────────────────────────────────────
 
     public static IFeed<TResult> Select<T, TResult>(

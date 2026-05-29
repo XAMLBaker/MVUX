@@ -87,6 +87,84 @@ public class SelectionTests
         Assert.Equal(["Seoul"], current);
     }
 
+    [Fact]
+    public async Task WhenSelected_On_ListFeedAsync_Updates_Selected_State()
+    {
+        var selected = State.Value("Seoul");
+        var withSelection = ListFeed.Async(_ => Task.FromResult<IReadOnlyList<string>>(ImmutableList.Create("Seoul", "Busan")))
+            .WhenSelected(selected);
+
+        var selectionFeed = Assert.IsAssignableFrom<ISelectionFeed>(withSelection);
+        await selectionFeed.SetSelectedAsync("Busan");
+
+        var selectedNow = await selected;
+        Assert.Equal("Busan", selectedNow);
+    }
+
+    [Fact]
+    public async Task WhenSelected_On_ListFeedAsync_Clears_Stale_Selected_State()
+    {
+        var selected = State.Value("Incheon");
+        var withSelection = ListFeed.Async(_ => Task.FromResult<IReadOnlyList<string>>(ImmutableList.Create("Seoul", "Busan")))
+            .WhenSelected(selected);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await foreach (var _ in withSelection.GetSource(cts.Token))
+        {
+        }
+
+        await WaitForAsync(async () => await selected is null, cts.Token);
+        Assert.Null(await selected);
+    }
+
+    [Fact]
+    public async Task WhenSelected_On_ListFeedAsync_Updates_Selected_Items_State()
+    {
+        var selectedItems = State.Value(ImmutableList<string>.Empty);
+        var withSelection = ListFeed.Async(_ => Task.FromResult<IReadOnlyList<string>>(ImmutableList.Create("Seoul", "Busan", "Incheon")))
+            .WhenSelected(selectedItems);
+
+        var selectionFeed = Assert.IsAssignableFrom<ISelectionFeed>(withSelection);
+        await selectionFeed.SetSelectedAsync(new[] { "Seoul", "Incheon" });
+
+        var current = await selectedItems;
+        Assert.Equal(["Seoul", "Incheon"], current);
+    }
+
+    [Fact]
+    public async Task WhenSelected_On_ListFeedAsync_Prunes_Stale_Selected_Items()
+    {
+        var selectedItems = State.Value(ImmutableList.Create("Seoul", "Incheon"));
+        var withSelection = ListFeed.Async(_ => Task.FromResult<IReadOnlyList<string>>(ImmutableList.Create("Seoul", "Busan")))
+            .WhenSelected(selectedItems);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await foreach (var _ in withSelection.GetSource(cts.Token))
+        {
+        }
+
+        await WaitForAsync(async () =>
+        {
+            var current = await selectedItems;
+            return current is not null && current.SequenceEqual(["Seoul"]);
+        }, cts.Token);
+
+        var final = await selectedItems;
+        Assert.Equal(["Seoul"], final);
+    }
+
+    [Fact]
+    public async Task WhenSelected_On_ListFeedValue_Updates_Selected_State()
+    {
+        var selected = State.Value("Seoul");
+        var withSelection = ListFeed.Value(["Seoul", "Busan"]).WhenSelected(selected);
+
+        var selectionFeed = Assert.IsAssignableFrom<ISelectionFeed>(withSelection);
+        await selectionFeed.SetSelectedAsync("Busan");
+
+        Assert.Equal("Busan", await selected);
+    }
+
     private static async Task<IMessage> FirstMessageAsync(IAsyncEnumerable<IMessage> source, CancellationToken ct)
     {
         await foreach (var msg in source.WithCancellation(ct))

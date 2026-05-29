@@ -223,6 +223,11 @@ listFeed.Select(item => ...)              // IListFeed<TResult> (item-level)
 listFeed.Where(item => ...)               // IListFeed<T>       (item-level)
 listFeed.Selection(selectedState)         // single selection sync
 listFeed.Selection(selectedItemsState)    // multi-selection sync
+
+ListFeed.Async(ct => WeatherService.GetWeatherListAsync(ct))
+    .WhenSelected(selectedState)          // single selection sync on list feed
+ListFeed.Async(ct => WeatherService.GetWeatherListAsync(ct))
+    .WhenSelected(selectedItemsState)     // multi-selection sync on list feed
 ```
 
 ### IListState\<T\>

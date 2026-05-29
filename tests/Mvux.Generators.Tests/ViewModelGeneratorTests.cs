@@ -122,6 +122,55 @@ public class ViewModelGeneratorTests
     }
 
     [Fact]
+    public void Reports_Diagnostic_For_Unsupported_Command_Signature()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using Luke.Mvux;
+
+            namespace Demo;
+
+            public partial record InvalidCommandModel()
+            {
+                public Task Save(string city, int count) => Task.CompletedTask;
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        var diagnostic = result.OutputDiagnostics.FirstOrDefault(d => d.Id == "MVUXGEN001");
+        Assert.NotNull(diagnostic);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic!.Severity);
+        Assert.Contains("Save", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void Reports_Diagnostic_For_Invalid_Explicit_FeedParameter_Binding()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            using Luke.Mvux;
+
+            namespace Demo;
+
+            public partial record InvalidFeedBindingModel()
+            {
+                public IState<int> Counter => State.Value(this, () => 1);
+
+                public ValueTask Reset([FeedParameter("MissingFeed")] int counter)
+                    => ValueTask.CompletedTask;
+            }
+            """;
+
+        var result = RunGenerator(source);
+
+        var diagnostic = result.OutputDiagnostics.FirstOrDefault(d => d.Id == "MVUXGEN001");
+        Assert.NotNull(diagnostic);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic!.Severity);
+        Assert.Contains("FeedParameter", diagnostic.GetMessage());
+    }
+
+    [Fact]
     public void Generates_Command_For_Single_CommandParameter_Method()
     {
         var source = """

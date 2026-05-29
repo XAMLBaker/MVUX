@@ -12,6 +12,14 @@ namespace Luke.Mvux.Generators;
 [Generator]
 public sealed class ViewModelGenerator : IIncrementalGenerator
 {
+    private static readonly DiagnosticDescriptor UnsupportedCommandSignature = new(
+        id: "MVUXGEN001",
+        title: "Unsupported command method signature",
+        messageFormat: "Method '{0}' cannot be generated as a command: {1}",
+        category: "Luke.Mvux.Generators",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var candidates = context.SyntaxProvider
@@ -22,7 +30,7 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(candidates, static (spc, symbol) =>
         {
-            var source = GenerateViewModel(symbol!);
+            var source = GenerateViewModel(symbol!, spc.ReportDiagnostic);
             if (source != null)
                 spc.AddSource($"{symbol!.Name}ViewModel.g.cs", source);
         });
@@ -43,7 +51,7 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
         return symbol;
     }
 
-    private static string? GenerateViewModel(INamedTypeSymbol symbol)
+    private static string? GenerateViewModel(INamedTypeSymbol symbol, Action<Diagnostic> reportDiagnostic)
     {
         var vmName = symbol.Name.Substring(0, symbol.Name.Length - 5) + "ViewModel";
         var ns = symbol.ContainingNamespace?.IsGlobalNamespace == false
@@ -89,8 +97,14 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
                     continue;
                 }
 
-                if (TryBuildCommandSpec(m, returnKind, feedSources, implicitFeedParameterEnabled, out var spec))
+                if (TryBuildCommandSpec(m, returnKind, feedSources, implicitFeedParameterEnabled, out var spec, out var failureReason))
                     cmds.Add(spec);
+                else
+                    reportDiagnostic(Diagnostic.Create(
+                        UnsupportedCommandSignature,
+                        m.Locations.FirstOrDefault(),
+                        m.Name,
+                        failureReason));
             }
         }
 
@@ -275,7 +289,8 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
         ReturnKind returnKind,
         IReadOnlyDictionary<string, FeedSource> feedSources,
         bool implicitFeedParameterEnabled,
-        out CommandSpec spec)
+        out CommandSpec spec,
+        out string failureReason)
     {
         var hasCt = method.Parameters.Length > 0 && IsCancellationToken(method.Parameters[method.Parameters.Length - 1].Type);
         var scanCount = hasCt ? method.Parameters.Length - 1 : method.Parameters.Length;
@@ -287,7 +302,15 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
         for (var i = 0; i < scanCount; i++)
         {
             var p = method.Parameters[i];
-            var feedProp = ResolveFeedProperty(p, feedSources, implicitFeedParameterEnabled);
+            var feedBindingStatus = ResolveFeedProperty(p, feedSources, implicitFeedParameterEnabled);
+            if (feedBindingStatus.IsInvalidExplicitBinding)
+            {
+                spec = default;
+                failureReason = $"parameter '{p.Name}' has [FeedParameter] that does not match a feed property.";
+                return false;
+            }
+
+            var feedProp = feedBindingStatus.PropertyName;
             if (feedProp is not null)
             {
                 args.Add(new CommandArg(p.Name, feedProp, p.Type.ToDisplayString(), true));
@@ -297,6 +320,7 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
             if (viewParamType is not null)
             {
                 spec = default;
+                failureReason = "only one non-feed parameter can be used as CommandParameter.";
                 return false;
             }
 
@@ -309,6 +333,7 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
             args.Add(new CommandArg(method.Parameters[method.Parameters.Length - 1].Name, null, "System.Threading.CancellationToken", false));
 
         spec = new CommandSpec(method.Name, returnKind, viewParamType, viewParamName, hasCt, args);
+        failureReason = string.Empty;
         return true;
     }
 
@@ -355,7 +380,7 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
         return true;
     }
 
-    private static string? ResolveFeedProperty(
+    private static FeedBindingStatus ResolveFeedProperty(
         IParameterSymbol parameter,
         IReadOnlyDictionary<string, FeedSource> feedSources,
         bool implicitFeedParameterEnabled)
@@ -369,19 +394,19 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
                 && explicitFeedAttr.ConstructorArguments[0].Value is string explicitName
                 && feedSources.TryGetValue(explicitName, out var explicitFeed)
                 && explicitFeed.ValueType == parameter.Type.ToDisplayString())
-                return explicitFeed.PropertyName;
+                return new FeedBindingStatus(explicitFeed.PropertyName, IsInvalidExplicitBinding: false);
 
-            return null;
+            return new FeedBindingStatus(null, IsInvalidExplicitBinding: true);
         }
 
         if (!implicitFeedParameterEnabled)
-            return null;
+            return new FeedBindingStatus(null, IsInvalidExplicitBinding: false);
 
         if (feedSources.TryGetValue(parameter.Name, out var implicitFeed)
             && implicitFeed.ValueType == parameter.Type.ToDisplayString())
-            return implicitFeed.PropertyName;
+            return new FeedBindingStatus(implicitFeed.PropertyName, IsInvalidExplicitBinding: false);
 
-        return null;
+        return new FeedBindingStatus(null, IsInvalidExplicitBinding: false);
     }
 
     private static string BuildCommandInvoke(CommandSpec cmd)
@@ -437,6 +462,8 @@ public sealed class ViewModelGenerator : IIncrementalGenerator
     }
 
     private readonly record struct FeedSource(string PropertyName, string ValueType);
+
+    private readonly record struct FeedBindingStatus(string? PropertyName, bool IsInvalidExplicitBinding);
 
     private readonly record struct CommandArg(string Name, string? FeedPropertyName, string TypeName, bool IsFeed);
 
