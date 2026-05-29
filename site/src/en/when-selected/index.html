@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WhenSelected - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Luke.Mvux</div>
+        <div class="brand-desc">MVUX-style reactive library docs for WPF and Avalonia</div>
+      </div>
+
+      <div class="lang-switch">
+        <a href="../../ko/when-selected/">한국어</a>
+        <a class="active" href="./">English</a>
+        <a href="../../zh/when-selected/">中文</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Start</div>
+        <a class="nav-link" href="../">Overview</a>
+        <a class="nav-link" href="../state/">State</a>
+        <a class="nav-link" href="../list-feed/">ListFeed</a>
+        <a class="nav-link" href="../list-state/">ListState</a>
+        <a class="nav-link" href="../selection/">Selection</a>
+        <a class="nav-link active" href="./">WhenSelected</a>
+        <a class="nav-link" href="../commands/">Commands</a>
+        <a class="nav-link" href="../feed-view/">FeedView</a>
+        <a class="nav-link" href="../faq/">FAQ</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Reference</div>
+        <a class="nav-link" href="../#api">API</a>
+        <a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">WhenSelected</div>
+          <h1>Selection, read<br />the way you mean it</h1>
+          <p class="lead">
+            <code>WhenSelected(...)</code> has the same behavior as <code>Selection(...)</code>.
+            The difference is the reading direction: it keeps the list chain intact and adds selection at the end.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="../selection/">Selection</a>
+            <a class="button" href="../list-feed/">ListFeed</a>
+          </div>
+        </div>
+
+        <div class="panel hero-side">
+          <div class="stat-grid">
+            <div class="stat"><small>Target</small><strong><code>IListFeed&lt;T&gt;</code></strong></div>
+            <div class="stat"><small>Returns</small><strong><code>IListFeed&lt;T&gt;</code></strong></div>
+            <div class="stat"><small>Role</small><strong>Selection sugar</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Why the extra name?</h2>
+        <table class="table">
+          <thead>
+            <tr><th>Base API</th><th>Convenience API</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Favorites.Selection(SelectedFavorite)</code></td><td><code>Favorites.WhenSelected(SelectedFavorite)</code></td></tr>
+            <tr><td><code>Queue.Selection(SelectedCards)</code></td><td><code>Queue.WhenSelected(SelectedCards)</code></td></tr>
+          </tbody>
+        </table>
+        <p>The behavior is identical. <code>WhenSelected</code> just reads more naturally when you want to say "this list is used with selection."</p>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Single selection</h2>
+        <pre><code>public IState&lt;string&gt; SelectedCity =&gt; State&lt;string&gt;.Empty(this);
+
+public IListFeed&lt;string&gt; Cities =&gt;
+    ListFeed
+        .Value(["Seoul", "Busan", "Incheon", "Daegu", "Jeju"])
+        .WhenSelected(SelectedCity);</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>XAML</h2>
+        <p>Like <code>Selection</code>, the XAML only binds the list. No <code>SelectedItem</code> binding is needed.</p>
+        <pre><code>&lt;ListBox ItemsSource="{Binding Cities}" /&gt;</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Multiple selection</h2>
+        <pre><code>public IState&lt;ImmutableList&lt;WorkCard&gt;&gt; SelectedCards =&gt;
+    State.Value(this, () =&gt; ImmutableList&lt;WorkCard&gt;.Empty);
+
+public IListFeed&lt;WorkCard&gt; QueueWithSelection =&gt;
+    Queue.WhenSelected(SelectedCards);</code></pre>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px; margin-bottom:24px;">
+        <article class="card">
+          <h2>When to use it</h2>
+          <p>Use it in samples and docs where <code>WhenSelected</code> reads more naturally than <code>Selection</code> for MVVM users.</p>
+        </article>
+        <article class="card">
+          <h2>When to use Selection</h2>
+          <p>Use <code>Selection</code> when you want the base API name, existing code consistency, or direct reference to the underlying behavior.</p>
+        </article>
+        <article class="card">
+          <h2>Caution</h2>
+          <p><code>WhenSelected</code> is for list feeds only. It is not a projection API for turning a single value feed into a list.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

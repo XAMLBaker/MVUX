@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>State - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-name">Luke.Mvux</div><div class="brand-desc">한국어 문서</div></div>
+      <div class="lang-switch"><a class="active" href="./">한국어</a><a href="../../en/state/">English</a><a href="../../zh/state/">中文</a></div>
+      <div class="nav-section"><div class="nav-title">문서</div><a class="nav-link" href="../">소개</a><a class="nav-link active" href="./">State</a><a class="nav-link" href="../list-feed/">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link" href="../when-selected/">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link" href="../faq/">FAQ</a></div>
+      <div class="nav-section"><div class="nav-title">외부</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">State</div>
+          <h1>현재 값을 가지는<br />쓰기 가능한 feed</h1>
+          <p class="lead">
+            <code>IState&lt;T&gt;</code>는 읽기와 쓰기가 모두 가능한 반응형 상태입니다. 텍스트 입력값, 현재 선택값, 사용자가 바꿀 수 있는 설정값처럼 “현재 값 하나”를 표현할 때 씁니다.
+          </p>
+          <div class="cta-row"><a class="button primary" href="../list-state/">ListState 보기</a><a class="button" href="../selection/">Selection 보기</a></div>
+        </div>
+        <div class="panel hero-side"><div class="stat-grid"><div class="stat"><small>읽기</small><strong><code>await state</code>, <code>GetSource</code></strong></div><div class="stat"><small>쓰기</small><strong><code>SetAsync</code>, <code>UpdateAsync</code></strong></div><div class="stat"><small>없음</small><strong><code>SetNoneAsync</code></strong></div></div></div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>언제 State를 쓰나요?</h2>
+        <table class="table">
+          <thead><tr><th>상황</th><th>예</th><th>추천 타입</th></tr></thead>
+          <tbody>
+            <tr><td>사용자가 직접 바꾸는 단일 값</td><td>검색어, 도시명, 토글 상태</td><td><code>IState&lt;T&gt;</code></td></tr>
+            <tr><td>선택된 항목 하나</td><td>선택된 도시, 선택된 카드</td><td><code>IState&lt;T&gt;</code></td></tr>
+            <tr><td>읽기 전용 조회 결과</td><td>서버에서 가져온 날씨</td><td><code>IFeed&lt;T&gt;</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>기본 작성법</h2>
+        <p>새 예제에서는 owner 패턴을 우선 사용합니다. 같은 프로퍼티에 여러 번 접근해도 같은 state 인스턴스가 유지됩니다.</p>
+        <pre><code>public partial record WeatherModel(IWeatherService WeatherService)
+{
+    public IState&lt;string&gt; City =&gt; State.Value(this, () =&gt; "Seoul");
+
+    public IState&lt;string&gt; SelectedFavorite =&gt; State&lt;string&gt;.Empty(this);
+}</code></pre>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>읽기</h2>
+          <pre><code>var city = await City;</code></pre>
+          <p><code>IState&lt;T&gt;</code>는 <code>await</code>로 현재 값을 읽을 수 있습니다. 값이 <code>None</code>이면 기본값이 반환됩니다.</p>
+        </article>
+        <article class="card">
+          <h2>쓰기</h2>
+          <pre><code>await City.SetAsync("Busan", ct);</code></pre>
+          <p><code>SetAsync</code>는 새 값을 넣고, 구독 중인 feed/view에 변경을 전달합니다.</p>
+        </article>
+        <article class="card">
+          <h2>비우기</h2>
+          <pre><code>await SelectedFavorite.SetNoneAsync(ct);</code></pre>
+          <p><code>null</code>을 넣는 것보다 “명시적으로 없음”을 표현할 때 의미가 분명합니다.</p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Feed와 조합하기</h2>
+        <p>State가 바뀌면 그 State를 기반으로 만든 feed도 다시 실행될 수 있습니다.</p>
+        <pre><code>public IFeed&lt;WeatherInfo&gt; CurrentWeather =&gt;
+    City.SelectAsync((city, ct) =&gt; WeatherService.GetWeatherAsync(city, ct));</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px; margin-bottom:24px;">
+        <h2>Generator가 ViewModel에 노출하는 방식</h2>
+        <p>모델의 <code>IState&lt;T&gt;</code>는 ViewModel에서 일반적인 바인딩 프로퍼티처럼 보입니다.</p>
+        <pre><code>// Model
+public IState&lt;string&gt; City =&gt; State.Value(this, () =&gt; "Seoul");
+
+// generated ViewModel 개념
+public string? City { get; set; }</code></pre>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAQ - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-name">Luke.Mvux</div><div class="brand-desc">한국어 문서</div></div>
+      <div class="lang-switch"><a class="active" href="./">한국어</a><a href="../../en/faq/">English</a><a href="../../zh/faq/">中文</a></div>
+      <div class="nav-section"><div class="nav-title">문서</div><a class="nav-link" href="../">소개</a><a class="nav-link" href="../state/">State</a><a class="nav-link" href="../list-feed/">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link" href="../when-selected/">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link active" href="./">FAQ</a></div>
+      <div class="nav-section"><div class="nav-title">외부</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">FAQ</div>
+          <h1>처음 볼 때<br />헷갈리는 지점</h1>
+          <p class="lead">
+            Luke.Mvux는 익숙한 MVVM 위에 feed/state 모델을 얹습니다. 처음에는 이름이 많아 보이지만, 기준은 읽기 전용인지 쓰기 가능한지입니다.
+          </p>
+          <div class="cta-row"><a class="button primary" href="../">문서 홈</a><a class="button" href="../selection/">Selection 보기</a></div>
+        </div>
+        <div class="panel hero-side"><div class="stat-grid"><div class="stat"><small>범위</small><strong>WPF, Avalonia</strong></div><div class="stat"><small>목적</small><strong>교육과 데모</strong></div><div class="stat"><small>핵심</small><strong>Feed / State / View</strong></div></div></div>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Uno MVUX인가요?</h2>
+          <p>아니요. Uno Platform MVUX의 API 모양과 사용 감각을 WPF와 Avalonia에서 독립적으로 재구현한 라이브러리입니다. Uno 소스를 복사한 프로젝트가 아닙니다.</p>
+        </article>
+        <article class="card">
+          <h2>지원 플랫폼은?</h2>
+          <p>현재 문서와 샘플 기준 지원 대상은 WPF와 Avalonia입니다. WinUI 3와 MAUI는 현재 범위에 넣지 않습니다.</p>
+        </article>
+        <article class="card">
+          <h2>프로덕션용인가요?</h2>
+          <p>목적은 교육과 데모입니다. 실제 앱에 쓰려면 API 안정성, 오류 처리, 플랫폼별 edge case를 직접 검토해야 합니다.</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Feed와 State 차이</h2>
+          <p><code>IFeed&lt;T&gt;</code>는 읽기 전용 데이터 흐름입니다. <code>IState&lt;T&gt;</code>는 현재 값을 읽고 쓸 수 있는 feed입니다.</p>
+        </article>
+        <article class="card">
+          <h2>ListFeed와 ListState 차이</h2>
+          <p><code>ListFeed</code>는 보여주는 목록, <code>ListState</code>는 수정하는 목록에 씁니다. 즐겨찾기처럼 추가/삭제가 필요하면 <code>ListState</code>가 맞습니다.</p>
+        </article>
+        <article class="card">
+          <h2>ListState.Async는 없나요?</h2>
+          <p>비동기 조회 목록은 <code>ListFeed.Async</code>가 담당합니다. 사용자가 편집할 초기 목록이 필요하면 조회 후 <code>ListState.Value</code>로 관리하는 흐름을 선택하세요.</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Selection과 WhenSelected</h2>
+          <p><code>Selection</code>은 기본 API이고, <code>WhenSelected</code>는 MVVM 사용자에게 더 자연스럽게 보이도록 추가된 편의 API입니다. 둘 다 리스트 feed와 선택 state를 연결합니다.</p>
+        </article>
+        <article class="card">
+          <h2>SelectedItem 바인딩은?</h2>
+          <p>사용하지 않는 방향을 권장합니다. <code>Favorites.Selection(SelectedFavorite)</code>처럼 모델에서 연결하고, XAML은 <code>ItemsSource</code>만 바인딩합니다.</p>
+        </article>
+        <article class="card">
+          <h2>UseMvux가 필요한 이유</h2>
+          <p>선택 동기화는 플랫폼 컨트롤과 연결되어야 합니다. 앱 시작 시 <code>UseMvux()</code>를 호출해야 WPF/Avalonia selection sync가 등록됩니다.</p>
+        </article>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px; margin-bottom:24px;">
+        <article class="card">
+          <h2>왜 owner 패턴을 쓰나요?</h2>
+          <p><code>State.Value(this, () =&gt; value)</code>처럼 owner를 넘기면 같은 모델 프로퍼티에 여러 번 접근해도 같은 state 인스턴스를 재사용합니다.</p>
+        </article>
+        <article class="card">
+          <h2>커맨드 이름은?</h2>
+          <p>메서드 이름 그대로 노출됩니다. <code>AddFavorite</code> 메서드는 <code>Command="{Binding AddFavorite}"</code>로 바인딩합니다.</p>
+        </article>
+        <article class="card">
+          <h2>문서를 읽는 순서</h2>
+          <p>처음이라면 State, ListFeed, ListState, Selection, WhenSelected, FeedView, Commands 순서로 읽는 것을 권장합니다.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ListFeed - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-name">Luke.Mvux</div><div class="brand-desc">한국어 문서</div></div>
+      <div class="lang-switch"><a class="active" href="./">한국어</a><a href="../../en/list-feed/">English</a><a href="../../zh/list-feed/">中文</a></div>
+      <div class="nav-section"><div class="nav-title">문서</div><a class="nav-link" href="../">소개</a><a class="nav-link" href="../state/">State</a><a class="nav-link active" href="./">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link" href="../when-selected/">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link" href="../faq/">FAQ</a></div>
+      <div class="nav-section"><div class="nav-title">외부</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">ListFeed</div>
+          <h1>읽기 전용<br />리스트 흐름</h1>
+          <p class="lead">
+            <code>IListFeed&lt;T&gt;</code>는 리스트 단위로 값을 내보내는 읽기 전용 feed입니다. 서버에서 가져온 목록, 계산된 목록, 정적 목록처럼 사용자가 직접 수정하지 않는 리스트에 적합합니다.
+          </p>
+          <div class="cta-row"><a class="button primary" href="../list-state/">ListState와 비교</a><a class="button" href="../selection/">Selection 보기</a></div>
+        </div>
+        <div class="panel hero-side"><div class="stat-grid"><div class="stat"><small>정적 목록</small><strong><code>ListFeed.Value</code></strong></div><div class="stat"><small>비동기 목록</small><strong><code>ListFeed.Async</code></strong></div><div class="stat"><small>스트림 목록</small><strong><code>ListFeed.AsyncEnumerable</code></strong></div></div></div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>ListFeed를 쓰는 상황</h2>
+        <table class="table">
+          <thead><tr><th>상황</th><th>예</th><th>추천 API</th></tr></thead>
+          <tbody>
+            <tr><td>이미 있는 고정 목록</td><td>도시 목록, 필터 옵션</td><td><code>ListFeed.Value</code></td></tr>
+            <tr><td>한 번 비동기로 가져오는 목록</td><td>서버 검색 결과</td><td><code>ListFeed.Async</code></td></tr>
+            <tr><td>계속 들어오는 목록 스트림</td><td>실시간 큐, 폴링 결과</td><td><code>ListFeed.AsyncEnumerable</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>정적 목록</h2>
+        <pre><code>public IListFeed&lt;string&gt; Cities =&gt;
+    ListFeed.Value(["Seoul", "Busan", "Incheon"]);</code></pre>
+        <p>단순 옵션 목록처럼 로딩 상태가 필요 없는 경우에는 <code>Async</code>보다 <code>Value</code>가 더 읽기 쉽습니다.</p>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>비동기 목록</h2>
+        <pre><code>public IListFeed&lt;WeatherInfo&gt; Weathers =&gt;
+    ListFeed.Async(ct =&gt; WeatherService.GetWeatherListAsync(ct));</code></pre>
+        <p>서버나 파일에서 비동기로 가져오는 읽기 전용 목록이면 <code>ListFeed.Async</code>가 맞습니다.</p>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>아이템 변환</h2>
+          <pre><code>Cities.Select(city =&gt; city.ToUpperInvariant())</code></pre>
+          <p><code>IListFeed&lt;T&gt;</code>의 <code>Select</code>는 리스트 자체가 아니라 리스트 안의 각 아이템에 적용됩니다.</p>
+        </article>
+        <article class="card">
+          <h2>아이템 필터</h2>
+          <pre><code>Cities.Where(city =&gt; city.StartsWith("S"))</code></pre>
+          <p><code>Where</code>도 아이템 단위 필터이며 반환 타입은 계속 <code>IListFeed&lt;T&gt;</code>입니다.</p>
+        </article>
+        <article class="card">
+          <h2>선택 연결</h2>
+          <pre><code>Cities.Selection(SelectedCity)</code></pre>
+          <p>읽기 전용 목록에도 선택 상태를 연결할 수 있습니다.</p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top:16px; margin-bottom:24px;">
+        <h2>ListFeed와 ListState 차이</h2>
+        <p>목록을 직접 추가/삭제/수정해야 한다면 <code>ListState</code>를 사용합니다. 단순히 보여주기만 한다면 <code>ListFeed</code>가 더 적합합니다.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

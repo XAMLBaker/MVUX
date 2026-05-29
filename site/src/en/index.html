@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Luke.Mvux - Docs</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-name">Luke.Mvux</div>
+        <div class="brand-desc">MVUX-style reactive library docs for WPF and Avalonia</div>
+      </div>
+
+      <div class="lang-switch">
+        <a href="../ko/">한국어</a>
+        <a class="active" href="./">English</a>
+        <a href="../zh/">中文</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Start</div>
+        <a class="nav-link active" href="./">Overview</a>
+        <a class="nav-link" href="state/">State</a>
+        <a class="nav-link" href="list-feed/">ListFeed</a>
+        <a class="nav-link" href="list-state/">ListState</a>
+        <a class="nav-link" href="selection/">Selection</a>
+        <a class="nav-link" href="when-selected/">WhenSelected</a>
+        <a class="nav-link" href="commands/">Commands</a>
+        <a class="nav-link" href="feed-view/">FeedView</a>
+        <a class="nav-link" href="faq/">FAQ</a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-title">Reference</div>
+        <a class="nav-link" href="#api">API</a>
+        <a class="nav-link" href="#faq">FAQ</a>
+        <a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">Korean-first docs</div>
+          <h1>A lighter<br />way to read MVUX</h1>
+          <p class="lead">
+            Luke.Mvux mirrors the MVUX API shape from Uno Platform for WPF and Avalonia.
+            This site keeps Korean as the default language and ships English and Chinese as well.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="#core">Get started</a>
+            <a class="button" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a>
+          </div>
+        </div>
+
+        <div class="panel hero-side">
+          <div class="stat-grid">
+            <div class="stat"><small>Default language</small><strong>Korean</strong></div>
+            <div class="stat"><small>Languages</small><strong>English, 中文</strong></div>
+            <div class="stat"><small>Hosting</small><strong>GitHub Pages</strong></div>
+            <div class="stat"><small>Style</small><strong>Text-first, minimal icons</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="core" class="section-grid">
+        <article class="card">
+          <h2>Core concepts</h2>
+          <p>Data is split into <code>IFeed</code>, state into <code>IState</code>, and lists into <code>IListFeed</code> / <code>IListState</code>. <code>Option&lt;T&gt;</code> and <code>Message&lt;T&gt;</code> separate value and loading axes.</p>
+        </article>
+        <article class="card">
+          <h2>Selection</h2>
+          <p><code>ListFeed.Value(...).WhenSelected(...)</code> connects selection state to a list explicitly. XAML <code>SelectedItem</code> binding disappears.</p>
+        </article>
+        <article class="card">
+          <h2>Samples</h2>
+          <p>WPF and Avalonia samples demonstrate the same concept on both platforms.</p>
+        </article>
+        <article class="card">
+          <h2>UI rendering</h2>
+          <p><code>FeedView</code> subscribes to <code>IFeed&lt;T&gt;</code> and renders Loading / Data / Error / None within one control.</p>
+        </article>
+      </section>
+
+      <section id="api" class="card" style="margin-top:16px;">
+        <h2>API</h2>
+        <table class="table">
+          <thead>
+            <tr><th>Type</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Option&lt;T&gt;</code></td><td>Undefined / None / Some state axis</td></tr>
+            <tr><td><code>Message&lt;T&gt;</code></td><td>Independent Data / IsLoading / Error axes</td></tr>
+            <tr><td><code>IFeed&lt;T&gt;</code></td><td>Read-only reactive data stream</td></tr>
+            <tr><td><code>IState&lt;T&gt;</code></td><td>Readable/writable single state</td></tr>
+            <tr><td><code>ListFeed.Value</code></td><td>Static list feed</td></tr>
+            <tr><td><code>ListFeed.Async</code></td><td>Async list feed</td></tr>
+            <tr><td><code>ListState.Value</code></td><td>Editable list state</td></tr>
+            <tr><td><code>Selection</code></td><td>Sync list selection state</td></tr>
+            <tr><td><code>WhenSelected</code></td><td>Connect selection to ListFeed/ListState</td></tr>
+            <tr><td><code>FeedView</code></td><td>Render feed state in XAML</td></tr>
+            <tr><td><code>Commands</code></td><td>Expose model methods as commands</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px;">
+        <article class="card">
+          <h2>Feed operators</h2>
+          <ul>
+            <li><code>Select</code> / <code>SelectAsync</code></li>
+            <li><code>Where</code></li>
+            <li><code>ForEachAsync</code></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>List operators</h2>
+          <ul>
+            <li><code>Select</code> / <code>Where</code></li>
+            <li><code>Selection</code></li>
+            <li><code>WhenSelected</code></li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>State operators</h2>
+          <ul>
+            <li><code>SetAsync</code></li>
+            <li><code>UpdateAsync</code></li>
+            <li><code>SetNoneAsync</code></li>
+          </ul>
+        </article>
+      </section>
+
+      <section id="samples" class="card" style="margin-top:16px;">
+        <h2>Samples</h2>
+        <ul>
+          <li><code>samples/WhenSelectedTest/Wpf.WhenSelected.Sample</code></li>
+          <li><code>samples/WhenSelectedTest/Avalonia.WhenSelected.Sample</code></li>
+        </ul>
+      </section>
+
+      <section id="faq" class="card" style="margin-top:16px; margin-bottom:24px;">
+        <h2>FAQ</h2>
+        <p>The site is sourced from <code>site/src</code> and published from <code>site/dist</code>.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

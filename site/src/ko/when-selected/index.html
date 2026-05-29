@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WhenSelected - Luke.Mvux</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-name">Luke.Mvux</div><div class="brand-desc">한국어 문서</div></div>
+      <div class="lang-switch"><a class="active" href="./">한국어</a></div>
+      <div class="nav-section"><div class="nav-title">문서</div><a class="nav-link" href="../">소개</a><a class="nav-link" href="../state/">State</a><a class="nav-link" href="../list-feed/">ListFeed</a><a class="nav-link" href="../list-state/">ListState</a><a class="nav-link" href="../selection/">Selection</a><a class="nav-link active" href="./">WhenSelected</a><a class="nav-link" href="../commands/">Commands</a><a class="nav-link" href="../feed-view/">FeedView</a><a class="nav-link" href="../faq/">FAQ</a></div>
+      <div class="nav-section"><div class="nav-title">외부</div><a class="nav-link" href="https://github.com/lukewire129/MVUX" target="_blank" rel="noreferrer">GitHub</a></div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div class="panel hero-main">
+          <div class="eyebrow">WhenSelected</div>
+          <h1>선택 의미를<br />체이닝으로 보완</h1>
+          <p class="lead">
+            <code>WhenSelected(...)</code>는 <code>Selection(...)</code>과 같은 선택 동기화 흐름을 표현합니다. 차이는 이름이 아니라 읽히는 방향입니다. 리스트를 만들고 그 흐름에 선택 상태를 붙인다는 의미를 체이닝으로 보완합니다.
+          </p>
+          <div class="cta-row"><a class="button primary" href="../selection/">Selection 문서</a><a class="button" href="../list-feed/">ListFeed 보기</a></div>
+        </div>
+        <div class="panel hero-side"><div class="stat-grid"><div class="stat"><small>대상</small><strong><code>IListFeed&lt;T&gt;</code></strong></div><div class="stat"><small>반환</small><strong><code>IListFeed&lt;T&gt;</code></strong></div><div class="stat"><small>역할</small><strong>Selection sugar</strong></div></div></div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Selection의 의미 보완</h2>
+        <table class="table">
+          <thead><tr><th>기본 API</th><th>편의 API</th></tr></thead>
+          <tbody>
+            <tr><td><code>Favorites.Selection(SelectedFavorite)</code></td><td><code>Favorites.WhenSelected(SelectedFavorite)</code></td></tr>
+            <tr><td><code>Queue.Selection(SelectedCards)</code></td><td><code>Queue.WhenSelected(SelectedCards)</code></td></tr>
+          </tbody>
+        </table>
+        <p>동작은 선택 state와 리스트 feed를 연결하는 것으로 같습니다. 다만 <code>WhenSelected</code>는 리스트 정의 마지막에 붙여 “이 목록은 선택 상태와 함께 쓰인다”는 의도를 더 자연스럽게 드러냅니다.</p>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>단일 선택</h2>
+        <pre><code>public IState&lt;string&gt; SelectedCity =&gt; State&lt;string&gt;.Empty(this);
+
+public IListFeed&lt;string&gt; Cities =&gt;
+    ListFeed
+        .Value(["Seoul", "Busan", "Incheon", "Daegu", "Jeju"])
+        .WhenSelected(SelectedCity);</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>XAML</h2>
+        <p><code>Selection</code>과 동일하게 XAML은 리스트만 바인딩합니다. <code>SelectedItem</code> 바인딩은 쓰지 않습니다.</p>
+        <pre><code>&lt;ListBox ItemsSource="{Binding Cities}" /&gt;</code></pre>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>다중 선택</h2>
+        <pre><code>public IState&lt;ImmutableList&lt;WorkCard&gt;&gt; SelectedCards =&gt;
+    State.Value(this, () =&gt; ImmutableList&lt;WorkCard&gt;.Empty);
+
+public IListFeed&lt;WorkCard&gt; QueueWithSelection =&gt;
+    Queue.WhenSelected(SelectedCards);</code></pre>
+      </section>
+
+      <section class="section-grid" style="margin-top:16px; margin-bottom:24px;">
+        <article class="card">
+          <h2>언제 쓰나요?</h2>
+          <p>MVVM 사용자에게 <code>Selection</code>보다 <code>WhenSelected</code>가 더 자연스럽게 읽히는 예제나 샘플에서 씁니다.</p>
+        </article>
+        <article class="card">
+          <h2>언제 Selection을 쓰나요?</h2>
+          <p>문서의 기본 설명, API 원형, 기존 코드와의 일관성을 우선할 때는 <code>Selection</code>을 씁니다.</p>
+        </article>
+        <article class="card">
+          <h2>주의점</h2>
+          <p><code>WhenSelected</code>는 리스트 feed 전용입니다. 단일 값 feed를 리스트처럼 바꾸는 projection API가 아닙니다.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
