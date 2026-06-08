@@ -54,7 +54,7 @@
 
 - 현재 저장소와 아키텍처 문서 기준 지원 대상은 WPF와 Avalonia다.
 - WinUI3, MAUI는 범위 밖이다.
-- 실험적 기능이나 패턴에서 벗어난 시도는 코어에 바로 넣기보다 별도 extension 성격으로 분리한다.
+- 코어 바깥의 UI 상호작용 성격 기능은 `Interactivity`로 분류하되, 현재는 별도 패키지보다 `Luke.Mvux.Wpf` / `Luke.Mvux.Avalonia` 내부 영역으로 관리한다.
 - README는 사용자용 문서이고, 구현 판단은 `.claude/docs/architecture.md`와 `.claude/memory/*`를 우선한다.
 
 ## 확인 명령

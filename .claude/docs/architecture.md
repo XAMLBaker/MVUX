@@ -168,6 +168,17 @@ DataContext = new WeatherViewModel(new FakeWeatherService());
 
 ---
 
+## Interactivity 배치 원칙
+
+- `Luke.Mvux` 코어에는 상태, 피드, 명령, 선택 같은 플랫폼 중립 기본 모델만 둔다.
+- attached property, behavior, 이벤트-커맨드 연결, 뷰 생명주기 연동처럼 UI 상호작용에 가까운 기능은 `Interactivity` 성격으로 본다.
+- `Interactivity`는 현재 별도 `Luke.Mvux.Interactivity` 패키지를 뜻하지 않는다.
+- 이런 기능은 우선 `Luke.Mvux.Wpf` / `Luke.Mvux.Avalonia` 내부의 `Interactivity/*` 폴더나 namespace로 관리한다.
+- `Extensions`는 기본 정책 용어로 사용하지 않는다. Uno의 `uno.extensions`를 연상시켜 제품 경계를 흐릴 수 있기 때문이다.
+- 공통 API, 테스트, 문서, 릴리스 독립성이 충분히 커졌을 때만 별도 프로젝트/패키지 승격을 검토한다.
+
+---
+
 ## Selection 자동 동기화
 
 `SelectionSyncManager`가 `[ModuleInitializer]`로 어셈블리 로드 시 자동 등록. **SelectedItem 바인딩 없이** ItemsSource 하나로 선택 자동 동기화.
